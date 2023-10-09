@@ -63,9 +63,9 @@ class ChatActivity : AppCompatActivity() {
             Log.d("uidd", id)
         }
 
-        binding.dots.setOnClickListener {
+//        binding.dots.setOnClickListener {
             registerForContextMenu(binding.dots)
-        }
+
 //        binding.transparentOverlay.setOnClickListener {
 //            binding.delete.visibility = View.GONE
 //            binding.transparentOverlay.visibility = View.GONE
