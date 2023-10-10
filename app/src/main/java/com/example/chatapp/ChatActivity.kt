@@ -85,6 +85,16 @@ class ChatActivity : AppCompatActivity() {
         binding.imageView2.setOnClickListener {
             finish()
         }
+        binding.cvCall.setOnClickListener {
+            val intent = Intent(this, CallActivity::class.java)
+                .putExtra("frag",0)
+            startActivity(intent)
+        }
+        binding.cvVideo.setOnClickListener {
+            val intent = Intent(this, CallActivity::class.java)
+                .putExtra("frag",1)
+            startActivity(intent)
+        }
 
         receiverUid = intent.getStringExtra("uid")
         Log.d("receiverUid", receiverUid!!)
