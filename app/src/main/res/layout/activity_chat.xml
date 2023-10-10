@@ -6,8 +6,6 @@
     android:layout_height="match_parent">
 
 
-
-
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -25,63 +23,67 @@
             android:id="@+id/imageView2"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:layout_marginStart="5dp"
             android:elevation="5dp"
-            android:layout_marginStart="10dp"
             android:src="@drawable/ic_backspace"
             app:layout_constraintBottom_toBottomOf="@+id/linearLayout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/linearLayout" />
 
 
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/profile01"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_marginStart="10dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_placeholder"
+            app:layout_constraintBottom_toBottomOf="@+id/imageView2"
+            app:layout_constraintStart_toEndOf="@+id/imageView2"
+            app:layout_constraintTop_toTopOf="@+id/imageView2" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"
+            android:gravity="center"
+            android:text="Profile Name"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:textStyle="bold|normal"
+            app:layout_constraintStart_toEndOf="@+id/profile01"
+            app:layout_constraintTop_toTopOf="@+id/profile01" />
+
+        <TextView
+            android:id="@+id/status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:gravity="start"
+            android:text="Online"
+            android:layout_marginStart="5dp"
+            android:textAlignment="textStart"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold|normal"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="@+id/profile01"
+            app:layout_constraintStart_toEndOf="@+id/profile01"
+            app:layout_constraintTop_toBottomOf="@+id/name" />
+
+
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
             android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/imageView2"
             app:layout_constraintTop_toTopOf="parent">
-
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile01"
-                android:layout_width="42dp"
-                android:layout_height="42dp"
-                android:layout_gravity="center"
-                android:layout_marginStart="10dp"
-                android:src="@drawable/ic_placeholder" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginStart="15dp"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginTop="10dp"
-                    android:gravity="center"
-                    android:text="Profile Name"
-                    android:textAlignment="center"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textStyle="bold|normal" />
-
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Online"
-                    android:textAlignment="textStart"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textStyle="bold|normal"
-                    android:visibility="invisible" />
-            </LinearLayout>
 
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/cvCall"
@@ -108,6 +110,8 @@
                 android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:layout_marginStart="10dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:padding="2dp"
                 android:src="@drawable/ic_dots_vertical" />
 
@@ -200,7 +204,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

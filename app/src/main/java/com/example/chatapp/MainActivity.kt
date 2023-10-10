@@ -40,6 +40,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.black)
+
         setContentView(binding.root)
         dialog = ProgressDialog(this@MainActivity)
         dialog!!.setMessage("Updating Profile...")

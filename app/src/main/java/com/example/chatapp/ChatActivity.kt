@@ -4,6 +4,7 @@ import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Handler
 import android.text.Editable
@@ -16,8 +17,11 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.Glide
 import com.example.chatapp.adapter.MessagesAdapter
@@ -31,6 +35,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Calendar
 import java.util.Date
+import android.Manifest
+
 
 class ChatActivity : AppCompatActivity() {
     private lateinit var binding: ActivityChatBinding
@@ -44,6 +50,7 @@ class ChatActivity : AppCompatActivity() {
     var dialog: ProgressDialog? = null
     var senderUid: String? = null
     var cnt = 0
+    private val galleryPermissionRequestCode = 123
     var receiverUid: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,8 +70,10 @@ class ChatActivity : AppCompatActivity() {
             Log.d("uidd", id)
         }
 
-//        binding.dots.setOnClickListener {
-            registerForContextMenu(binding.dots)
+        binding.dots.setOnClickListener { view ->
+            showPopupMenu(view)
+        }
+
 
 //        binding.transparentOverlay.setOnClickListener {
 //            binding.delete.visibility = View.GONE
@@ -74,6 +83,25 @@ class ChatActivity : AppCompatActivity() {
 //        binding.delete.setOnClickListener {
 //            clearChat()
 //        }
+
+        binding.attachment.setOnClickListener {
+            // Check if permission is granted
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is granted, open the gallery
+                openGallery()
+            } else {
+                // Permission is not granted, request it
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    galleryPermissionRequestCode
+                )
+            }
+        }
 
         binding.name.text = name
         Glide.with(this).load(profile)
@@ -177,12 +205,12 @@ class ChatActivity : AppCompatActivity() {
                 }
         }
 
-        binding.attachment.setOnClickListener {
-            val intent = Intent()
-            intent.action = Intent.ACTION_GET_CONTENT
-            intent.type = "image/*"
-            startActivityForResult(intent, 25)
-        }
+//        binding.attachment.setOnClickListener {
+//            val intent = Intent()
+//            intent.action = Intent.ACTION_GET_CONTENT
+//            intent.type = "image/*"
+//            startActivityForResult(intent, 25)
+//        }
 
         val handler = Handler()
         binding.messageBox.addTextChangedListener(object : TextWatcher {
@@ -210,25 +238,39 @@ class ChatActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowTitleEnabled(false)
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
-        super.onCreateContextMenu(menu, v, menuInfo)
+    private fun showPopupMenu(view: View) {
+        val popup = PopupMenu(this, view)
 
-        if (v == binding.dots) { // Check if the context menu is for the registered ImageView
-            menuInflater.inflate(R.menu.image_context_menu, menu) // Use your menu resource here
+        // Inflate your menu resource
+        popup.menuInflater.inflate(R.menu.image_context_menu, popup.menu)
+
+        // Get the Menu object
+        val menu = popup.menu
+
+        // Apply the custom style to each menu item
+        for (i in 0 until menu.size()) {
+            val menuItem = menu.getItem(i)
+            val view = menuItem.actionView
+            view?.setBackgroundResource(R.drawable.white_circle) // Set your custom background drawable here
+            view?.setBackgroundColor(ContextCompat.getColor(this, R.color.accentColor)) // Set your custom text color here
         }
-    }
 
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_delete -> {
-                // Handle delete option
-                // Implement the logic to delete the image or perform the desired action
-                Toast.makeText(this,"Done Delete",Toast.LENGTH_SHORT).show()
-                true
+        // Set a click listener for menu items
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_delete -> {
+                    // Handle the delete action
+                    clearChat()
+                    true
+                }
+                // Add more cases for other menu items as needed
+
+                else -> false
             }
-
-            else -> super.onContextItemSelected(item)
         }
+
+        // Show the popup menu
+        popup.show()
     }
 
 
@@ -359,6 +401,35 @@ class ChatActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == galleryPermissionRequestCode) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted, open the gallery
+                openGallery()
+            } else {
+                // Permission is denied, show a toast message
+                Toast.makeText(
+                    this,
+                    "Cannot access gallery without permission",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent()
+        intent.action = Intent.ACTION_GET_CONTENT
+        intent.type = "image/*"
+        startActivityForResult(intent, 25)
     }
 
 }

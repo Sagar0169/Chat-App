@@ -42,6 +42,9 @@ class GroupChatActivity : AppCompatActivity() {
         Log.d("username2",userName.toString())
         supportActionBar?.title = groupName
         binding.name.text = userName
+        binding.imageView2.setOnClickListener{
+            onBackPressed()
+        }
         messageList = ArrayList()
         senderRoom = senderUid+receiverUid
         receiverRoom = receiverUid+senderUid

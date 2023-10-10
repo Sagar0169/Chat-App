@@ -84,8 +84,9 @@ class MessagesAdapter(
             val viewHolder = holder as SendMsgHolder
             if (message.message.equals("photo")) {
                 viewHolder.binding.image.visibility = View.VISIBLE
+                viewHolder.binding.imageView45.visibility = View.VISIBLE
                 viewHolder.binding.message.visibility = View.GONE
-                viewHolder.binding.mLinear.visibility = View.GONE
+
 
                 Glide.with(context).load(message.imageUrl)
                     .placeholder(R.drawable.gallery_placeholder)
@@ -96,10 +97,17 @@ class MessagesAdapter(
                     context.startActivity(intent)
                 }
             }
-            if (message.seen) {
-                viewHolder.binding.timestamp.text = "SEEN"
-            } else {
+
+            if (message.seen ) {
+//                viewHolder.binding.timestamp.text = "SEEN"
+
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
+                holder.binding.messageSentTick.setImageResource(R.drawable.open_eye)
+
+            } else {
+
+                viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
+                holder.binding.messageSentTick.setImageResource(R.drawable.close_eye)
             }
 
             viewHolder.binding.message.text = message.message
@@ -155,8 +163,9 @@ class MessagesAdapter(
             val viewHolder = holder as ReceiveMsgHolder
             if (message.message.equals("photo")) {
                 viewHolder.binding.image.visibility = View.VISIBLE
+                viewHolder.binding.imageView45.visibility = View.VISIBLE
                 viewHolder.binding.message.visibility = View.GONE
-                viewHolder.binding.mLinear.visibility = View.GONE
+
 
 
                 Glide.with(context).load(message.imageUrl)

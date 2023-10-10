@@ -1,11 +1,16 @@
 package com.example.chatapp.adapter
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
+import android.widget.ImageView
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.chatapp.ChatActivity
@@ -147,7 +152,7 @@ class UserAdapter(
                         holder.binding.timeStamp.text = formattedTime
                     } else {
                         // Handle the case where timestamp is null or not a valid Long
-                        holder.binding.timeStamp.text = "N/A"
+                        holder.binding.timeStamp.text = ""
                     }
                 }
 
@@ -164,6 +169,16 @@ class UserAdapter(
         Glide.with(context).load(user.profileImage)
             .placeholder(R.drawable.ic_placeholder)
             .into(holder.binding.profile)
+
+        if(!user.isGroup){
+            holder.binding.profile.setOnClickListener{
+                showImageDialog(context,user.profileImage!!)
+            }
+        }
+
+
+
+
         holder.itemView.setOnClickListener {
             val intent = if (user.isGroup) {
                 Intent(context, GroupChatActivity::class.java)
@@ -180,4 +195,34 @@ class UserAdapter(
             context.startActivity(intent)
         }
     }
+
+    fun showImageDialog(context: Context, image: String) {
+        val dialog = Dialog(context, android.R.style.Theme_Translucent_NoTitleBar)
+        dialog.setContentView(R.layout.imagedialog)
+        dialog.setCancelable(true)
+        dialog.setCanceledOnTouchOutside(true)
+        dialog.window!!.setLayout(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        dialog.window!!.setGravity(Gravity.CENTER)
+        val lp: WindowManager.LayoutParams = dialog.window!!.attributes
+        lp.dimAmount = 0.75f
+        dialog.window!!.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        dialog.window!!.attributes = lp
+        val dialogImage = dialog.findViewById(R.id.ivImg) as ImageView
+        val ivClose = dialog.findViewById(R.id.ivClose) as ImageView
+
+        Log.d("image", image)
+
+        Glide.with(context).load(image)
+            .placeholder(R.color.black)
+            .into(dialogImage)
+
+        ivClose.setOnClickListener {
+            dialog.dismiss()
+        }
+        dialog.show()
+    }
+
 }

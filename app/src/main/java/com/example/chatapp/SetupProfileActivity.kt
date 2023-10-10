@@ -1,11 +1,15 @@
 package com.example.chatapp
 
+import android.Manifest
 import android.app.ProgressDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.chatapp.databinding.ActivitySetupProfileBinding
 import com.example.chatapp.model.User
@@ -21,6 +25,7 @@ class SetupProfileActivity : AppCompatActivity() {
     private var database: FirebaseDatabase? = null
     private var storage: FirebaseStorage? = null
     private var selectedImage: Uri? = null
+    private val galleryPermissionRequestCode = 123
     private var dialog: ProgressDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,10 +41,22 @@ class SetupProfileActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         supportActionBar?.hide()
         binding.imageView.setOnClickListener {
-            val intent = Intent()
-            intent.action = Intent.ACTION_GET_CONTENT
-            intent.type = "image/*"
-            startActivityForResult(intent, 45)
+            // Check if permission is granted
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission is granted, open the gallery
+                openGallery()
+            } else {
+                // Permission is not granted, request it
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    galleryPermissionRequestCode
+                )
+            }
         }
 
         binding.continueBtn02.setOnClickListener {
@@ -171,6 +188,37 @@ class SetupProfileActivity : AppCompatActivity() {
                 selectedImage = data.data
             }
         }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == galleryPermissionRequestCode) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission is granted, open the gallery
+                openGallery()
+            } else {
+                // Permission is denied, show a toast message
+                Toast.makeText(
+                    this,
+                    "Cannot access gallery without permission",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    // ...
+
+    private fun openGallery() {
+        val intent = Intent()
+        intent.action = Intent.ACTION_GET_CONTENT
+        intent.type = "image/*"
+        startActivityForResult(intent, 45)
     }
 }
 
