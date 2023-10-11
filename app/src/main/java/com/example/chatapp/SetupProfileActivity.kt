@@ -5,9 +5,11 @@ import android.app.ProgressDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -15,7 +17,6 @@ import com.example.chatapp.databinding.ActivitySetupProfileBinding
 import com.example.chatapp.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import java.util.Date
 
@@ -28,6 +29,7 @@ class SetupProfileActivity : AppCompatActivity() {
     private val galleryPermissionRequestCode = 123
     private var dialog: ProgressDialog? = null
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySetupProfileBinding.inflate(layoutInflater)
@@ -42,21 +44,13 @@ class SetupProfileActivity : AppCompatActivity() {
         supportActionBar?.hide()
         binding.imageView.setOnClickListener {
             // Check if permission is granted
-            if (ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED
-            ) {
-                // Permission is granted, open the gallery
+//            val galleryPermission = Manifest.permission.MANAGE_EXTERNAL_STORAGE
+//            if (ContextCompat.checkSelfPermission(this, galleryPermission) == PackageManager.PERMISSION_GRANTED) {
+//                // Permission is granted, open the gallery
                 openGallery()
-            } else {
-                // Permission is not granted, request it
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    galleryPermissionRequestCode
-                )
-            }
+//            } else {
+//                ActivityCompat.requestPermissions(this, arrayOf(galleryPermission), galleryPermissionRequestCode)
+//            }
         }
 
         binding.continueBtn02.setOnClickListener {
@@ -83,15 +77,14 @@ class SetupProfileActivity : AppCompatActivity() {
                         val phone = auth!!.currentUser!!.phoneNumber
                         val name: String = binding.editName.text.toString()
                         val role: String = binding.role.text.toString()
-                        val user = User(uid, name,name, phone, downloadUri.toString(),role,false,null,null)
+                        val user = User(uid, name, name, phone, downloadUri.toString(), role, false, null, null)
                         database!!.reference
                             .child("users")
                             .child(uid!!)
                             .setValue(user)
                             .addOnCompleteListener {
                                 dialog!!.dismiss()
-                                val intent =
-                                    Intent(this@SetupProfileActivity, MainActivity::class.java)
+                                val intent = Intent(this@SetupProfileActivity, MainActivity::class.java)
                                 startActivity(intent)
                                 finish()
                             }
@@ -100,15 +93,14 @@ class SetupProfileActivity : AppCompatActivity() {
                         val phone = auth!!.currentUser!!.phoneNumber
                         val name: String = binding.editName.text.toString()
                         val role: String = binding.role.text.toString()
-                        val user = User(uid, name,name, phone, "No Image",role,false,null,0)
+                        val user = User(uid, name, name, phone, "No Image", role, false, null, 0)
                         database!!.reference
                             .child("users")
                             .child(uid!!)
                             .setValue(user)
                             .addOnCanceledListener {
                                 dialog!!.dismiss()
-                                val intent =
-                                    Intent(this@SetupProfileActivity, MainActivity::class.java)
+                                val intent = Intent(this@SetupProfileActivity, MainActivity::class.java)
                                 startActivity(intent)
                                 finish()
                             }
@@ -117,7 +109,6 @@ class SetupProfileActivity : AppCompatActivity() {
             }
         }
     }
-
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -139,14 +130,14 @@ class SetupProfileActivity : AppCompatActivity() {
                             .addOnSuccessListener { downloadUri ->
                                 val filePath = downloadUri.toString()
 
-                                // Update the com.example.chatapp.model.User object with the image URL
+                                // Update the User object with the image URL
                                 val uid = auth!!.uid
                                 val phone = auth!!.currentUser!!.phoneNumber
                                 val name: String = binding.editName.text.toString()
                                 val role: String = binding.role.text.toString()
-                                val user = User(uid, name, name,phone, filePath,role,false,null,null)
+                                val user = User(uid, name, name, phone, filePath, role, false, null, null)
 
-                                // Save the com.example.chatapp.model.User object to the database
+                                // Save the User object to the database
                                 database!!.reference
                                     .child("users")
                                     .child(uid!!)
@@ -161,10 +152,7 @@ class SetupProfileActivity : AppCompatActivity() {
                                             val exception = task.exception
                                             if (exception != null) {
                                                 exception.printStackTrace()
-                                                Log.e(
-                                                    "DatabaseError",
-                                                    exception.message ?: "Unknown error"
-                                                )
+                                                Log.e("DatabaseError", exception.message ?: "Unknown error")
                                             }
                                             // Handle the failure scenario as needed
                                         }
@@ -190,29 +178,23 @@ class SetupProfileActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == galleryPermissionRequestCode) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission is granted, open the gallery
-                openGallery()
-            } else {
-                // Permission is denied, show a toast message
-                Toast.makeText(
-                    this,
-                    "Cannot access gallery without permission",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-    }
-
-    // ...
+//    override fun onRequestPermissionsResult(
+//        requestCode: Int,
+//        permissions: Array<out String>,
+//        grantResults: IntArray
+//    ) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+//
+//        if (requestCode == galleryPermissionRequestCode) {
+//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                // Permission is granted, open the gallery
+//                openGallery()
+//            } else {
+//                // Permission is denied, show a toast message
+//                Toast.makeText(this, "Cannot access gallery without permission", Toast.LENGTH_SHORT).show()
+//            }
+//        }
+//    }
 
     private fun openGallery() {
         val intent = Intent()
@@ -221,4 +203,3 @@ class SetupProfileActivity : AppCompatActivity() {
         startActivityForResult(intent, 45)
     }
 }
-

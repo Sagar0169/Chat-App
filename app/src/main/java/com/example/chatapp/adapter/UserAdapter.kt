@@ -35,7 +35,7 @@ class UserAdapter(
 ) :
     RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
     val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-//    var lastMsgSender: String? = null
+    var image: String? = null
     var timestamp: String? = null
     var unReadCount: String? = null
 
@@ -57,123 +57,180 @@ class UserAdapter(
         Log.d("chatRoomId", chatRoomId)
 
         // Add a ValueEventListener to fetch the last message for the chat room
-
-        database.reference.child("chats")
-            .child(chatRoomId)
-            .child("lastMsg")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    val lastMsg = dataSnapshot.value.toString()
-                    database.reference.child("chats")
-                        .child(chatRoomId)
-                        .child("lastMsgSeen")
-                        .addValueEventListener(object : ValueEventListener {
-                            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                val seen = dataSnapshot.value.toString()
-                                if(seen == "true"){
-                                    holder.binding.messageSentTick.setImageResource(R.drawable.tick_green)
-                                }else{
-                                    holder.binding.messageSentTick.setImageResource(R.drawable.tick_black)
-                                }
-                            }
-
-                            override fun onCancelled(databaseError: DatabaseError) {
-                                // Handle any errors if needed
-                            }
-                        })
-                    database.reference.child("chats")
-                        .child(chatRoomId)
-                        .child("lastMsgFrom")
-                        .addValueEventListener(object : ValueEventListener {
-                            override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                val lastMsgSender = dataSnapshot.value.toString()
-                                if (lastMsgSender == FirebaseAuth.getInstance().currentUser?.uid) {
-                                    // Last message is from the current user
-                                    holder.binding.tvRole.text = "You: $lastMsg"
-                                    holder.binding.messageSentTick.visibility = View.VISIBLE
-
-                                } else {
-                                    // Last message is from the receiver
-                                    holder.binding.tvRole.text = lastMsg
-                                    holder.binding.messageSentTick.visibility = View.GONE
-
+        if (!user.isGroup) {
+            database.reference.child("chats")
+                .child(chatRoomId)
+                .child("lastMsg")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val lastMsg = dataSnapshot.value.toString()
+                        database.reference.child("chats")
+                            .child(chatRoomId)
+                            .child("lastMsgSeen")
+                            .addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                    val seen = dataSnapshot.value.toString()
+                                    if (seen == "true") {
+                                        holder.binding.messageSentTick.setImageResource(R.drawable.tick_green)
+                                    } else {
+                                        holder.binding.messageSentTick.setImageResource(R.drawable.tick_black)
+                                    }
                                 }
 
-                                database.reference.child("chats")
-                                    .child(chatRoomId)
-                                    .child("lastMsgUnRead")
-                                    .addValueEventListener(object : ValueEventListener {
-                                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-                                            unReadCount = dataSnapshot.value?.toString() // Use safe call operator
-                                            if (lastMsgSender == FirebaseAuth.getInstance().currentUser?.uid) {
-                                                // Last message is from the current user or unReadCount is null/empty/zero
-                                                Log.d("checking","2")
-                                                holder.binding.messageCount.visibility = View.GONE
-                                            } else if (unReadCount.isNullOrEmpty() || (unReadCount!!.toInt() == 0)) {
-                                                Log.d("checking","3")
-                                                holder.binding.messageCount.visibility = View.GONE
-                                            } else {
-                                                Log.d("checking","4")
-                                                holder.binding.messageCount.visibility = View.VISIBLE
-                                                holder.binding.messageCount.text = unReadCount
+                                override fun onCancelled(databaseError: DatabaseError) {
+                                    // Handle any errors if needed
+                                }
+                            })
+                        database.reference.child("chats")
+                            .child(chatRoomId)
+                            .child("lastMsgFrom")
+                            .addValueEventListener(object : ValueEventListener {
+                                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                    val lastMsgSender = dataSnapshot.value.toString()
+                                    if (lastMsgSender == FirebaseAuth.getInstance().currentUser?.uid) {
+                                        // Last message is from the current user
+                                        holder.binding.tvRole.text = "You: $lastMsg"
+                                        holder.binding.messageSentTick.visibility = View.VISIBLE
+
+                                    } else {
+                                        // Last message is from the receiver
+                                        holder.binding.tvRole.text = lastMsg
+                                        holder.binding.messageSentTick.visibility = View.GONE
+
+                                    }
+
+                                    database.reference.child("chats")
+                                        .child(chatRoomId)
+                                        .child("lastMsgUnRead")
+                                        .addValueEventListener(object : ValueEventListener {
+                                            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                                                unReadCount =
+                                                    dataSnapshot.value?.toString() // Use safe call operator
+                                                if (lastMsgSender == FirebaseAuth.getInstance().currentUser?.uid) {
+                                                    // Last message is from the current user or unReadCount is null/empty/zero
+                                                    Log.d("checking", "2")
+                                                    holder.binding.messageCount.visibility =
+                                                        View.GONE
+                                                } else if (unReadCount.isNullOrEmpty() || (unReadCount!!.toInt() == 0)) {
+                                                    Log.d("checking", "3")
+                                                    holder.binding.messageCount.visibility =
+                                                        View.GONE
+                                                } else {
+                                                    Log.d("checking", "4")
+                                                    holder.binding.messageCount.visibility =
+                                                        View.VISIBLE
+                                                    holder.binding.messageCount.text = unReadCount
+                                                }
                                             }
-                                        }
 
-                                        override fun onCancelled(databaseError: DatabaseError) {
-                                            // Handle any errors if needed
-                                        }
-                                    })
+                                            override fun onCancelled(databaseError: DatabaseError) {
+                                                // Handle any errors if needed
+                                            }
+                                        })
 
 
-                            }
+                                }
 
-                            override fun onCancelled(databaseError: DatabaseError) {
-                                // Handle any errors if needed
-                            }
-                        })
-                }
-
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle any errors if needed
-                }
-            })
-
-        database.reference.child("chats")
-            .child(chatRoomId)
-            .child("lastMsgTime")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(dataSnapshot: DataSnapshot) {
-                    timestamp = dataSnapshot.value.toString()
-                    val timeInMillis = timestamp!!.toLongOrNull()
-
-                    if (timeInMillis != null) {
-                        val date = Date(timeInMillis)
-                        val formattedTime = dateFormat.format(date)
-                        holder.binding.timeStamp.text = formattedTime
-                    } else {
-                        // Handle the case where timestamp is null or not a valid Long
-                        holder.binding.timeStamp.text = ""
+                                override fun onCancelled(databaseError: DatabaseError) {
+                                    // Handle any errors if needed
+                                }
+                            })
                     }
-                }
 
-                override fun onCancelled(databaseError: DatabaseError) {
-                    // Handle any errors if needed
-                }
-            })
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors if needed
+                    }
+                })
 
+            database.reference.child("chats")
+                .child(chatRoomId)
+                .child("lastMsgTime")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        timestamp = dataSnapshot.value.toString()
+                        val timeInMillis = timestamp!!.toLongOrNull()
 
+                        if (timeInMillis != null) {
+                            val date = Date(timeInMillis)
+                            val formattedTime = dateFormat.format(date)
+                            holder.binding.timeStamp.text = formattedTime
+                        } else {
+                            // Handle the case where timestamp is null or not a valid Long
+                            holder.binding.timeStamp.text = ""
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors if needed
+                    }
+                })
 
 
 //        holder.binding.messageCount.text = unReadCount
-        holder.binding.username.text = user.name
-        Glide.with(context).load(user.profileImage)
-            .placeholder(R.drawable.ic_placeholder)
-            .into(holder.binding.profile)
+            holder.binding.username.text = user.name
 
-        if(!user.isGroup){
-            holder.binding.profile.setOnClickListener{
-                showImageDialog(context,user.profileImage!!)
+            Glide.with(context).load(user.profileImage)
+                .placeholder(R.drawable.ic_placeholder)
+                .into(holder.binding.profile)
+
+            holder.binding.profile.setOnClickListener {
+                showImageDialog(context, user.profileImage!!)
             }
+        } else {
+            holder.binding.username.text = user.name
+            database.reference.child("groupChats").child(user.uid!!)
+                .child("lastMsgTime")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        timestamp = dataSnapshot.value.toString()
+                        val timeInMillis = timestamp!!.toLongOrNull()
+
+                        if (timeInMillis != null) {
+                            val date = Date(timeInMillis)
+                            val formattedTime = dateFormat.format(date)
+                            holder.binding.timeStamp.text = formattedTime
+                        } else {
+                            // Handle the case where timestamp is null or not a valid Long
+                            holder.binding.timeStamp.text = ""
+                        }
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors if needed
+                    }
+                })
+            database.reference.child("groupChats").child(user.uid!!)
+                .child("groupchatprofile")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        image = dataSnapshot.value.toString()
+
+                        Glide.with(context).load(image)
+                            .placeholder(R.drawable.ic_placeholder)
+                            .into(holder.binding.profile)
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors if needed
+                    }
+                })
+
+            holder.binding.profile.setOnClickListener {
+                showImageDialog(context, image!!)
+            }
+            database.reference.child("groupChats")
+                .child(user.uid!!)
+                .child("lastMsg")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(dataSnapshot: DataSnapshot) {
+                        val lastSms = dataSnapshot.value.toString()
+                        holder.binding.tvRole.text = lastSms
+                    }
+
+                    override fun onCancelled(databaseError: DatabaseError) {
+                        // Handle any errors if needed
+                    }
+                })
         }
 
 

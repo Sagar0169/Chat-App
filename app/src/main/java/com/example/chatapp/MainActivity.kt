@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.chatapp.adapter.UserAdapter
 import com.example.chatapp.databinding.ActivityMainBinding
 import com.example.chatapp.model.User
+import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -43,6 +44,10 @@ class MainActivity : AppCompatActivity() {
         window.statusBarColor = ContextCompat.getColor(this, R.color.black)
 
         setContentView(binding.root)
+
+        FirebaseApp.initializeApp(this)
+
+
         dialog = ProgressDialog(this@MainActivity)
         dialog!!.setMessage("Updating Profile...")
         dialog!!.setCancelable(false)
@@ -70,7 +75,6 @@ class MainActivity : AppCompatActivity() {
             binding.groupChat.visibility = View.VISIBLE
             RvAdapter(groupChats!!)
         }
-
 
 
         database!!.reference.child("users")
@@ -135,6 +139,8 @@ class MainActivity : AppCompatActivity() {
 
 
 
+        val userRef = database?.reference?.child("users")
+        userRef?.keepSynced(true)
 
         RvAdapter(users!!)
 

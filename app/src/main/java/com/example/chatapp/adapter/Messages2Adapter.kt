@@ -14,11 +14,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.chatapp.Message2
 import com.example.chatapp.R
 import com.google.firebase.auth.FirebaseAuth
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 class Messages2Adapter(
-    val context: Context, private var item: ArrayList<Message2>
+    val context: Context, private var item: ArrayList<Message2>, var groupId: String
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     val item_receive = 1
     val item_sent = 2
 
@@ -49,14 +53,17 @@ class Messages2Adapter(
 
             val viewHolder = holder as SentViewHolder
             viewHolder.sentMessage.text = currentMessage.text
+            viewHolder.timestamp.text = dateFormat.format(Date(currentMessage.timestamp!!))
+            viewHolder.messageSentTick.visibility = View.GONE
 
         } else {
             val viewHolder = holder as ReceiveViewHolder
             viewHolder.sentMessage.text = currentMessage.text
-            if (currentMessage.senderName!=null)
-            {
-                viewHolder.senderName.text = currentMessage.senderName
-            }
+            viewHolder.timestamp.text = dateFormat.format(Date(currentMessage.timestamp!!))
+//            if (currentMessage.senderName!=null)
+//            {
+//                viewHolder.senderName.text = currentMessage.senderName
+//            }
 
 
         }
@@ -74,13 +81,15 @@ class Messages2Adapter(
 
     class SentViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val sentMessage = itemView.findViewById<TextView>(R.id.message)
+        val messageSentTick = itemView.findViewById<ImageView>(R.id.messageSentTick)
+        val timestamp = itemView.findViewById<TextView>(R.id.timestamp)
 
 
     }
 
     class ReceiveViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val sentMessage = itemView.findViewById<TextView>(R.id.message)
-        val senderName = itemView.findViewById<TextView>(R.id.timestamp)
+        val timestamp = itemView.findViewById<TextView>(R.id.timestamp)
     }
 
 }

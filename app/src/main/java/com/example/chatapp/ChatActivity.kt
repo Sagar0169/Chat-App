@@ -36,6 +36,7 @@ import com.google.firebase.storage.FirebaseStorage
 import java.util.Calendar
 import java.util.Date
 import android.Manifest
+import com.google.firebase.FirebaseApp
 
 
 class ChatActivity : AppCompatActivity() {
@@ -184,6 +185,7 @@ class ChatActivity : AppCompatActivity() {
             }
         })
 
+
         binding.sendBtn.setOnClickListener {
             val messageTxt: String = binding.messageBox.text.toString()
             val date = Date()
@@ -244,6 +246,10 @@ class ChatActivity : AppCompatActivity() {
                     .setValue("Online")
             }
         })
+
+        val messagesRef11 = database!!.reference.child("chats").child(senderRoom!!).child("messages")
+        messagesRef11.keepSynced(true)
+
 
         supportActionBar?.setDisplayShowTitleEnabled(false)
     }
