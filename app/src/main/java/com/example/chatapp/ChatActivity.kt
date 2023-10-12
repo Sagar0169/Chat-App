@@ -36,10 +36,29 @@ import com.google.firebase.storage.FirebaseStorage
 import java.util.Calendar
 import java.util.Date
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
+import android.preference.PreferenceManager
 import com.google.firebase.FirebaseApp
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody
+import okhttp3.Response
+import java.io.IOException
 
 
 class ChatActivity : AppCompatActivity() {
+    private val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
+    private val FCM_API = "https://fcm.googleapis.com/fcm/send"
+    private val SERVER_KEY = "AAAA0Suoa18:APA91bFS3mwFl_JEnfPjiqmfBdusauvb5n2LeTKP95hXdxaqRKWNqZC5Zams68sC165xNKlIklHOuNivfQzGCQTr2kN0nUh_nI1qLhD4zu3cTak4Z8Xh31gkXayVx-uaLjTi1Ujn32XT"
+    private lateinit var Token:String
+    private lateinit var name:String
     private lateinit var binding: ActivityChatBinding
     var adapter: MessagesAdapter? = null
     var layoutManager: LinearLayoutManager? = null
@@ -60,15 +79,16 @@ class ChatActivity : AppCompatActivity() {
         setContentView(binding.root)
         database = FirebaseDatabase.getInstance()
         storage = FirebaseStorage.getInstance()
+        Token= intent.getStringExtra("DeviceToken").toString()
         dialog = ProgressDialog(this@ChatActivity)
         dialog!!.setMessage("Sending image...")
         dialog!!.setCancelable(false)
         messages = ArrayList()
-        val name = intent.getStringExtra("name")
+        name = intent.getStringExtra("name").toString()
         val profile = intent.getStringExtra("image")
         val id = intent.getStringExtra("uid")
         if (id != null) {
-            Log.d("uidd", id)
+            Log.d("Tooken", Token)
         }
 
         binding.dots.setOnClickListener { view ->
@@ -84,7 +104,7 @@ class ChatActivity : AppCompatActivity() {
 //        binding.delete.setOnClickListener {
 //            clearChat()
 //        }
-
+        createNotificationChannel()
         binding.attachment.setOnClickListener {
             // Check if permission is granted
             if (ContextCompat.checkSelfPermission(
@@ -215,7 +235,9 @@ class ChatActivity : AppCompatActivity() {
                         .setValue(message)
                         .addOnSuccessListener {}
                 }
+            sendPushNotificationToRecipient(receiverUid, getPreferenceString(this,AppConstants.senderName), messageTxt)
         }
+
 
 //        binding.attachment.setOnClickListener {
 //            val intent = Intent()
@@ -446,6 +468,84 @@ class ChatActivity : AppCompatActivity() {
         intent.action = Intent.ACTION_GET_CONTENT
         intent.type = "image/*"
         startActivityForResult(intent, 25)
+    }
+    private fun sendPushNotificationToRecipient(recipientUid: String?, senderName: String?, message: String) {
+        // Replace "RECIPIENT_FCM_TOKEN" with the actual FCM token of the recipient
+        val recipientFcmToken = Token
+
+        if (recipientFcmToken != null) {
+            val notificationData = mapOf(
+                "title" to "New Message from $senderName",
+                "body" to message
+                // Add any other relevant data
+            )
+
+            val fcmMessage = mapOf(
+                "to" to recipientFcmToken,
+                "data" to notificationData
+            )
+            Log.d("fcmMessage",fcmMessage.toString())
+            // Use your preferred method to send the FCM message to the recipient
+            // This could involve using a server, Cloud Functions, or any other backend solution
+            sendFcmMessageToRecipient(fcmMessage)
+        }
+    }
+    private fun sendFcmMessageToRecipient(fcmMessage: Map<String, Any>) {
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val response = sendFcmMessage(fcmMessage)
+                // Handle the response as needed
+                val responseBody = response?.body?.string()
+                println("FCM Message Response: $responseBody")
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+    }
+    private  fun sendFcmMessage(fcmMessage: Map<String, Any>): Response? {
+        val json = mapToJson(fcmMessage)
+        Log.d("JSONDATA",json)
+        val client = OkHttpClient()
+
+        val body = RequestBody.create(JSON, json)
+        val request = Request.Builder()
+            .url(FCM_API)
+            .post(body)
+            .addHeader("Authorization", "key=$SERVER_KEY")
+            .addHeader("Content-Type", "application/json")
+            .build()
+
+        return try {
+            client.newCall(request).execute()
+
+        } catch (e: IOException) {
+            null
+        }
+    }
+    private fun mapToJson(data: Map<String, Any>): String {
+        return Gson().toJson(data)
+    }
+    fun savePreferencesString(context: Context, key: String, value: String) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putString(key, value)
+        editor.apply()
+    }
+
+    fun getPreferenceString(context: Context, key: String): String {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        return sharedPreferences.getString(key, "").toString()
+    }
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                "channel_id",
+                "Channel Name",
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
 }

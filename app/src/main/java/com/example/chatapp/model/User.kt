@@ -9,7 +9,9 @@ class User {
     var role: String? = null
     var isGroup: Boolean = false
     var lastMessage: String? = null // Added field for last message
+    var FcmToken: String? = null // Added field for last message
     var unSeenCount : Int?= null
+
 
     constructor() {}
 
@@ -21,7 +23,8 @@ class User {
         profileImage: String?,
         role: String?,
         isGroup: Boolean,
-        lastMessage: String?, // Initialize lastMessage field
+        lastMessage: String?,
+        FcmToken: String?,// Initialize lastMessage field
         unSeenCount :Int?
     ) {
         this.uid = uid
@@ -31,7 +34,8 @@ class User {
         this.profileImage = profileImage
         this.role = role
         this.isGroup = isGroup
-        this.lastMessage = lastMessage // Set lastMessage during initialization
+        this.lastMessage = lastMessage
+        this.FcmToken=FcmToken// Set lastMessage during initialization
         this.unSeenCount = unSeenCount
     }
 }

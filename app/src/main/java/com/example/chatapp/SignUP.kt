@@ -61,7 +61,8 @@ class SignUP : AppCompatActivity() {
 //                addUserToDatabase(
 //                    binding?.edtName?.text.toString(), email, auth.currentUser?.uid
 //                )
-                startActivity(Intent(this@SignUP, SetupProfileActivity::class.java).putExtra("user_name",binding?.edtName?.text.toString()))
+                startActivity(Intent(this@SignUP, SetupProfileActivity::class.java).putExtra("DeviceToken",Token))
+
                 finish()
 
             } else {

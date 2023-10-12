@@ -23,6 +23,7 @@ import java.util.Date
 class SetupProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySetupProfileBinding
     private var auth: FirebaseAuth? = null
+    private lateinit var Token:String
     private var database: FirebaseDatabase? = null
     private var storage: FirebaseStorage? = null
     private var selectedImage: Uri? = null
@@ -35,6 +36,7 @@ class SetupProfileActivity : AppCompatActivity() {
         binding = ActivitySetupProfileBinding.inflate(layoutInflater)
         window.statusBarColor = ContextCompat.getColor(this, R.color.otp)
         setContentView(binding.root)
+        Token= intent?.getStringExtra("DeviceToken").toString()
         dialog = ProgressDialog(this@SetupProfileActivity)
         dialog!!.setMessage("Updating Profile...")
         dialog!!.setCancelable(false)
@@ -52,6 +54,8 @@ class SetupProfileActivity : AppCompatActivity() {
 //                ActivityCompat.requestPermissions(this, arrayOf(galleryPermission), galleryPermissionRequestCode)
 //            }
         }
+
+        Log.d("DeviceTOken",Token)
 
         binding.continueBtn02.setOnClickListener {
             val name: String = binding.editName.text.toString()
@@ -77,7 +81,7 @@ class SetupProfileActivity : AppCompatActivity() {
                         val phone = auth!!.currentUser!!.phoneNumber
                         val name: String = binding.editName.text.toString()
                         val role: String = binding.role.text.toString()
-                        val user = User(uid, name, name, phone, downloadUri.toString(), role, false, null, null)
+                        val user = User(uid, name, name, phone, downloadUri.toString(), role, false, null,Token, null)
                         database!!.reference
                             .child("users")
                             .child(uid!!)
@@ -93,7 +97,7 @@ class SetupProfileActivity : AppCompatActivity() {
                         val phone = auth!!.currentUser!!.phoneNumber
                         val name: String = binding.editName.text.toString()
                         val role: String = binding.role.text.toString()
-                        val user = User(uid, name, name, phone, "No Image", role, false, null, 0)
+                        val user = User(uid, name, name, phone, "No Image", role, false, null,Token, 0)
                         database!!.reference
                             .child("users")
                             .child(uid!!)
@@ -135,7 +139,7 @@ class SetupProfileActivity : AppCompatActivity() {
                                 val phone = auth!!.currentUser!!.phoneNumber
                                 val name: String = binding.editName.text.toString()
                                 val role: String = binding.role.text.toString()
-                                val user = User(uid, name, name, phone, filePath, role, false, null, null)
+                                val user = User(uid, name, name, phone, filePath, role, false, null,Token, null)
 
                                 // Save the User object to the database
                                 database!!.reference

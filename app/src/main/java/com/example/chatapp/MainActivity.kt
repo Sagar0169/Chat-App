@@ -3,8 +3,10 @@ package com.example.chatapp
 import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.app.ProgressDialog
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.text.InputType
 import android.view.View
 import android.widget.EditText
@@ -34,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     private var dialog: ProgressDialog? = null
     var user: User? = null
     var userName: String? = null
+    var senderName: String? = null
 
 
     @SuppressLint("ResourceAsColor")
@@ -110,6 +113,24 @@ class MainActivity : AppCompatActivity() {
                 // Handle database error if needed
             }
         })
+        database!!.reference.child("users").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+
+                for (snapshot1 in snapshot.children) {
+                    val user: User? = snapshot1.getValue(User::class.java)
+                    if (user!!.uid.equals(FirebaseAuth.getInstance().uid)) {
+                        senderName=snapshot1.child("name").value.toString()
+                        savePreferencesString(this@MainActivity,AppConstants.senderName,senderName.toString())
+//                        allChats!!.add(user) // Add users to the combined list
+                    }
+                    usersAdapter!!.notifyDataSetChanged()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle database error if needed
+            }
+        })
 
         database!!.reference.child("groupChats").addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -119,7 +140,7 @@ class MainActivity : AppCompatActivity() {
                     val groupName = postSnapshot.child("groupName").value.toString()
                     val currentUser = postSnapshot.getValue(User::class.java)
                     val groupUser =
-                        User(groupId, groupName, userName, null, null, null, true, null, null)
+                        User(groupId, groupName, userName, null, null, null, true, null,null, null)
                     if (FirebaseAuth.getInstance().currentUser?.uid != currentUser?.uid) {
                         groupChats!!.add(groupUser)
 //                        allChats!!.add(groupUser) // Add group chats to the combined list
@@ -217,5 +238,11 @@ class MainActivity : AppCompatActivity() {
         val layoutManager = LinearLayoutManager(this@MainActivity)
         binding.mRec.layoutManager = layoutManager
         binding.mRec.adapter = usersAdapter
+    }
+    fun savePreferencesString(context: Context, key: String, value: String) {
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+        val editor = sharedPreferences.edit()
+        editor.putString(key, value)
+        editor.apply()
     }
 }

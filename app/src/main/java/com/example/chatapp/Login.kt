@@ -32,6 +32,11 @@ class Login : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+        else{
+            val intent = Intent(this@Login,SignUP::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 
     private fun logIn(email: String, password: String) {

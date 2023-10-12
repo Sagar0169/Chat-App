@@ -248,6 +248,7 @@ class UserAdapter(
                     .putExtra("name", user.name)
                     .putExtra("image", user.profileImage)
                     .putExtra("uid", user.uid)
+                    .putExtra("DeviceToken", user.FcmToken)
             }
             context.startActivity(intent)
         }
