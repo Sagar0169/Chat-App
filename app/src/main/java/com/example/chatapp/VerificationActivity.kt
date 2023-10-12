@@ -25,7 +25,7 @@ class VerificationActivity : AppCompatActivity() {
         supportActionBar?.hide()
         binding.editNumber.requestFocus()
         binding.continueBtn.setOnClickListener{
-            val intent = Intent(this@VerificationActivity,OTPActivity::class.java)
+            val intent = Intent(this@VerificationActivity,SignUP::class.java)
             intent.putExtra("phoneNumber",binding.editNumber.text.toString())
             startActivity(intent)
         }
