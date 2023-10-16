@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     user = snapshot.getValue(User::class.java)
-                    userName = user!!.user_name
+                    userName = user?.user_name
 
                 }
 

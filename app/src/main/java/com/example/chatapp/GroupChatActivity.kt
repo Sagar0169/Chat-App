@@ -7,6 +7,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -144,7 +145,10 @@ class GroupChatActivity : AppCompatActivity() {
 
 
         binding.ivCamera.setOnClickListener {
-            checkAndOpenGallery()
+            openGalleryForImage()
+        }
+        binding.attachment.setOnClickListener {
+            openGalleryForImage()
         }
 
         mDbRef.child("groupChats").child(groupId)
@@ -190,9 +194,9 @@ class GroupChatActivity : AppCompatActivity() {
     }
 
     private fun openGalleryForImage() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.type = "image/*"
-        startActivityForResult(intent, IMAGE_REQUEST_CODE)
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(galleryIntent, IMAGE_REQUEST_CODE)
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

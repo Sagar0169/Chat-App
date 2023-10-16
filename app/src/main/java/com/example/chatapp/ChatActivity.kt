@@ -40,6 +40,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
 import android.preference.PreferenceManager
+import android.provider.MediaStore
 import com.google.firebase.FirebaseApp
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -113,7 +114,7 @@ class ChatActivity : AppCompatActivity() {
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 // Permission is granted, open the gallery
-                openGallery()
+                openGalleryForImage()
             } else {
                 // Permission is not granted, request it
                 ActivityCompat.requestPermissions(
@@ -451,7 +452,7 @@ class ChatActivity : AppCompatActivity() {
         if (requestCode == galleryPermissionRequestCode) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission is granted, open the gallery
-                openGallery()
+                openGalleryForImage()
             } else {
                 // Permission is denied, show a toast message
                 Toast.makeText(
@@ -462,13 +463,18 @@ class ChatActivity : AppCompatActivity() {
             }
         }
     }
+    private fun openGalleryForImage() {
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(galleryIntent, 25)
 
-    private fun openGallery() {
-        val intent = Intent()
-        intent.action = Intent.ACTION_GET_CONTENT
-        intent.type = "image/*"
-        startActivityForResult(intent, 25)
     }
+
+//    private fun openGallery() {
+//        val intent = Intent()
+//        intent.action = Intent.ACTION_GET_CONTENT
+//        intent.type = "image/*"
+//        startActivityForResult(intent, 25)
+//    }
     private fun sendPushNotificationToRecipient(recipientUid: String?, senderName: String?, message: String) {
         // Replace "RECIPIENT_FCM_TOKEN" with the actual FCM token of the recipient
         val recipientFcmToken = Token
