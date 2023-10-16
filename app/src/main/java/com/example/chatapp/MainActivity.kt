@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.text.InputType
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -39,6 +40,7 @@ class MainActivity : AppCompatActivity() {
     private var dialog: ProgressDialog? = null
     var user: User? = null
     var userName: String? = null
+    var GroupId: String? = null
     var CurrentUser: User? = null
     var senderName: String? = null
     private val requestPermissionLauncher = registerForActivityResult(
@@ -150,19 +152,15 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 groupChats!!.clear()
                 for (postSnapshot in snapshot.children) {
-                    val groupId = postSnapshot.key
+                    GroupId = postSnapshot.key?: ""
                     val groupName = postSnapshot.child("groupName").value.toString()
-//                    val currentUser=postSnapshot.getValue(User::class.java)
+                    val currentUser=postSnapshot.getValue(User::class.java)
                     val groupUser =
-                        User(groupId, groupName, userName, null, null, null, true, null,null, null)
-                    if (FirebaseAuth.getInstance().currentUser?.uid != null) {
+                        User(GroupId, groupName, userName, null, null, null, true, null,null, null)
+                    if (FirebaseAuth.getInstance().currentUser?.uid != currentUser?.uid) {
                           groupChats!!.add(groupUser)
-//                        allChats!!.add(groupUser) // Add group chats to the combined list
+//
                     }
-//                    groupChats!!.add(groupUser)
-//                    if (groupName!=null)
-//                    {
-//                    groupChats!!.add(groupUser)}
                 }
                 // Update the adapters after adding groups
                 usersAdapter!!.notifyDataSetChanged()
@@ -260,7 +258,7 @@ private fun showCreateGroupDialog() {
         if (groupName.isNotEmpty()) {
             // Create a new group in the database with a name
             val newGroupRef = database?.reference!!.child("groupChats").push()
-            val groupId = newGroupRef.key // Get a unique group ID
+            val groupId = GroupId // Get a unique group ID
 
             // Add current user as a member
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
@@ -272,13 +270,14 @@ private fun showCreateGroupDialog() {
             newGroupRef.child("groupName").setValue(groupName)
 
             // Redirect the user to the group chat activity
-            val intent = Intent(this, GroupChatActivity::class.java).apply {
-                putExtra("isGroupChat", true)
-                putExtra("groupId", groupId)
-                putExtra("name", groupName)
-                putExtra("user_name", userName)
-            }
-            startActivity(intent)
+//            val intent = Intent(this, GroupChatActivity::class.java).apply {
+//                putExtra("isGroupChat", true)
+////                putExtra("groupIdOnCreate", groupId)
+//                    Log.d("username3",groupId.toString())
+//                putExtra("name", groupName)
+//                putExtra("user_name", userName)
+//            }
+//            startActivity(intent)
         } else {
             Toast.makeText(this, "Please enter a group name", Toast.LENGTH_SHORT).show()
         }

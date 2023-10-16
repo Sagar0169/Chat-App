@@ -56,12 +56,13 @@ class GroupChatActivity : AppCompatActivity() {
         binding = ActivityGroupChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = FirebaseAuth.getInstance()
-        mDbRef = FirebaseDatabase.getInstance().getReference()
+        mDbRef = FirebaseDatabase.getInstance().reference
         storageReference = FirebaseStorage.getInstance().reference
         groupId = intent.getStringExtra("GroupUid") ?: ""
+
         groupName = intent.getStringExtra("GroupName") ?: ""
         userName = intent.getStringExtra("user_name") ?: ""
-        Log.d("username2", userName.toString())
+        Log.d("username2", groupId.toString())
         supportActionBar?.title = groupName
         binding.name.text = groupName
         binding.imageView2.setOnClickListener {
@@ -83,6 +84,7 @@ class GroupChatActivity : AppCompatActivity() {
                         messageAdapter.notifyDataSetChanged()
                         binding.groupMessageRecycler.smoothScrollToPosition(messageAdapter.itemCount - 1)
                     }
+                    messageAdapter.notifyDataSetChanged()
                 }
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
@@ -102,6 +104,23 @@ class GroupChatActivity : AppCompatActivity() {
                 }
             })
 
+//        binding.sendGroupMessageButton.setOnClickListener {
+//            val messageText = binding.groupMessageBox.text.toString().trim()
+//            if (messageText.isNotEmpty()) {
+//                val senderUid = auth.currentUser?.uid ?: ""
+////                val groupid=mDbRef.child("groupChats").push().key
+//                val message = Message2(messageText,userName, senderUid, System.currentTimeMillis())
+//
+//
+//                    mDbRef.child("groupChats").child(groupId)
+//                        .child("messages")
+//                        .push()
+//                        .setValue(message)
+//
+//
+//                binding.groupMessageBox.text.clear()
+//            }
+//        }
         binding.sendGroupMessageButton.setOnClickListener {
             val messageText = binding.groupMessageBox.text.toString().trim()
 
@@ -113,7 +132,20 @@ class GroupChatActivity : AppCompatActivity() {
                 lastMsgObj["lastMsg"] = "$userName: $messageText" // Include sender's username
                 lastMsgObj["groupchatprofile"]
                 lastMsgObj["lastMsgTime"] = date.time
-                mDbRef.child("groupChats").child(groupId).updateChildren(lastMsgObj)
+                mDbRef.child("groupChats").child(groupId).child("messages")
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(dataSnapshot: DataSnapshot) {
+                            // Check if there are existing messages
+                            if (dataSnapshot.exists()) {
+                                // If there are messages, update the last message
+                                mDbRef.child("groupChats").child(groupId).updateChildren(lastMsgObj)
+                            }
+                        }
+
+                        override fun onCancelled(databaseError: DatabaseError) {
+                            // Handle any errors if needed
+                        }
+                    })
 
                 mDbRef.child("groupChats").child(groupId).child("messages").push()
                     .setValue(message)
