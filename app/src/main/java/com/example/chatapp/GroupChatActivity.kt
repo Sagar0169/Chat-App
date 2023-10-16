@@ -132,20 +132,7 @@ class GroupChatActivity : AppCompatActivity() {
                 lastMsgObj["lastMsg"] = "$userName: $messageText" // Include sender's username
                 lastMsgObj["groupchatprofile"]
                 lastMsgObj["lastMsgTime"] = date.time
-                mDbRef.child("groupChats").child(groupId).child("messages")
-                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(dataSnapshot: DataSnapshot) {
-                            // Check if there are existing messages
-                            if (dataSnapshot.exists()) {
-                                // If there are messages, update the last message
-                                mDbRef.child("groupChats").child(groupId).updateChildren(lastMsgObj)
-                            }
-                        }
-
-                        override fun onCancelled(databaseError: DatabaseError) {
-                            // Handle any errors if needed
-                        }
-                    })
+                mDbRef.child("groupChats").child(groupId).updateChildren(lastMsgObj)
 
                 mDbRef.child("groupChats").child(groupId).child("messages").push()
                     .setValue(message)
