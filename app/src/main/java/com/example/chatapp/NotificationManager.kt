@@ -80,6 +80,62 @@ class NotificationManager(private val mCtx: Context) {
             notificationManager.notify(ID_SMALL_NOTIFICATION * i, notification)
         }
     }
+//    fun showSmallNotification(senderUid: String, title: String?, message: String?, intent: Intent?) {
+//        val i = System.currentTimeMillis().toInt()
+//        val notificationId = ID_SMALL_NOTIFICATION * i + senderUid.hashCode()
+//
+//        var resultPendingIntent: PendingIntent? = null
+//        resultPendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+//            PendingIntent.getActivity(
+//                mCtx, notificationId,
+//                intent,
+//                PendingIntent.FLAG_MUTABLE
+//            )
+//        } else {
+//            PendingIntent.getActivity(
+//                mCtx, notificationId,
+//                intent,
+//                PendingIntent.FLAG_UPDATE_CURRENT
+//            )
+//        }
+//
+//        val mBuilder: NotificationCompat.Builder =
+//            NotificationCompat.Builder(mCtx, CHANNEL_ID)
+//        val notification: Notification = mBuilder.setSmallIcon(R.drawable.ic_launcher_background)
+//            .setTicker(title)
+//            .setWhen(0)
+//            .setAutoCancel(true)
+//            .setContentIntent(resultPendingIntent)
+//            .setContentTitle(title)
+//            .setSmallIcon(R.drawable.ic_launcher_background)
+//            .setLargeIcon(BitmapFactory.decodeResource(mCtx.resources, R.drawable.ic_launcher_background))
+//            .setContentText(message)
+//            .setDefaults(Notification.DEFAULT_VIBRATE)
+//            .setPriority(NotificationCompat.PRIORITY_MAX)
+//            .build()
+//        notification.flags = notification.flags or Notification.FLAG_AUTO_CANCEL
+//
+//        val notificationManager =
+//            mCtx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val importance = NotificationManager.IMPORTANCE_HIGH
+//            val notificationChannel = NotificationChannel(CHANNEL_ID, "CHATING", importance)
+//            notificationChannel.enableLights(true)
+//            notificationChannel.lightColor = Color.RED
+//            notificationChannel.enableVibration(true)
+//            notificationChannel.lockscreenVisibility = Notification.DEFAULT_LIGHTS
+//
+//            if (notificationManager != null) mBuilder.setChannelId(CHANNEL_ID)
+//            mBuilder.build()
+//
+//            notificationManager.createNotificationChannel(notificationChannel)
+//        }
+//
+//        // Show or update the notification
+//        notificationManager.notify(notificationId, notification)
+//    }
+
 
     private fun getBigPictureNotification(
         mNotificationManager: NotificationManager,

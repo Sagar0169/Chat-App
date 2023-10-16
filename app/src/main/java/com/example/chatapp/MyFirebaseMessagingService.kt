@@ -21,11 +21,17 @@ import org.json.JSONObject
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
 
+    private var notificationIdCounter = 0
+    private val senderNotificationMap = mutableMapOf<String, NotificationCompat.Builder>()
     override fun onNewToken(token: String) {
         if(token!= ""){
             savePreferencesString(this,AppConstants.FirebaseToken,token)
             Log.e("New token ","token: $token")
         }
+
+    }
+    private fun generateNotificationId(): Int {
+        return notificationIdCounter++
     }
 
     fun savePreferencesString(context: Context, key: String, value: String) {
@@ -83,30 +89,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         json: JSONObject
     ) {
         try {
-//            val value = json.getJSONObject("value")
             val body = json.getString("body").toString()
             val title = json.getString("title").toString()
-//            val message = value.getString("message").toString()
-//            val notificationType = json.getInt("noti_type").toString()
+
 
             val mNotificationManager = NotificationManager(applicationContext)
-//            var contentIntent: PendingIntent? = null
             val resultIntent = Intent(this, MainActivity::class.java)
             resultIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-
-//            contentIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-//                PendingIntent
-//                    .getActivity(
-//                        this, System.currentTimeMillis().toInt(), resultIntent,
-//                        PendingIntent.FLAG_MUTABLE
-//                    )
-//            } else {
-//                PendingIntent
-//                    .getActivity(
-//                        this, System.currentTimeMillis().toInt(), resultIntent,
-//                        PendingIntent.FLAG_UPDATE_CURRENT
-//                    )
-//            }
             mNotificationManager.showSmallNotification(title, body, resultIntent)
         } catch (e: JSONException) {
             e.printStackTrace()
