@@ -10,9 +10,7 @@ import android.os.Handler
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.ContextMenu
 import android.view.Gravity
-import android.view.MenuItem
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
@@ -70,10 +68,15 @@ class ChatActivity : AppCompatActivity() {
     var storage: FirebaseStorage? = null
     var dialog: ProgressDialog? = null
     var senderUid: String? = null
+
+    var Uid: String? = null
+    var Name: String? = null
+    var profileImage: String? = null
+    var profile: String? = null
     var cnt = 0
     private val galleryPermissionRequestCode = 123
     var receiverUid: String? = null
-
+    var isFrom: Int? = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
@@ -85,18 +88,32 @@ class ChatActivity : AppCompatActivity() {
         dialog!!.setMessage("Sending image...")
         dialog!!.setCancelable(false)
         messages = ArrayList()
-        name = intent.getStringExtra("name").toString()
-        val profile = intent.getStringExtra("image")
+
+
+        profileImage=intent.getStringExtra("image")
+        Name=intent.getStringExtra("name")
         val id = intent.getStringExtra("uid")
+        isFrom=intent.getIntExtra("Isfrom",0)
+        if (isFrom==1)
+        {
+            profile = intent.getStringExtra("Image")
+            name = intent.getStringExtra("Name").toString()
+            senderUid=intent.getStringExtra("Suid")
+            receiverUid=intent.getStringExtra("Rid")
+        }
+        else{
+            profile = intent.getStringExtra("image")
+            name = intent.getStringExtra("name").toString()
+            senderUid = FirebaseAuth.getInstance().currentUser?.uid
+            receiverUid = intent.getStringExtra("uid")
+        }
+        Uid= id
         if (id != null) {
             Log.d("Tooken", Token)
         }
-
         binding.dots.setOnClickListener { view ->
             showPopupMenu(view)
         }
-
-
 //        binding.transparentOverlay.setOnClickListener {
 //            binding.delete.visibility = View.GONE
 //            binding.transparentOverlay.visibility = View.GONE
@@ -124,7 +141,6 @@ class ChatActivity : AppCompatActivity() {
                 )
             }
         }
-
         binding.name.text = name
         Glide.with(this).load(profile)
             .placeholder(R.drawable.gallery_placeholder)
@@ -133,12 +149,11 @@ class ChatActivity : AppCompatActivity() {
             showImageDialog(this, profile!!)
         }
         binding.imageView2.setOnClickListener {
-            finish()
+            onBackPressed()
         }
+        val message=getPreferenceString(this,AppConstants.senderName)
         binding.cvCall.setOnClickListener {
-            val intent = Intent(this, CallActivity::class.java)
-                .putExtra("frag",0)
-            startActivity(intent)
+//            sendPushNotificationToRecipientCalling(Uid,message,"receive call")
         }
         binding.cvVideo.setOnClickListener {
             val intent = Intent(this, CallActivity::class.java)
@@ -146,10 +161,11 @@ class ChatActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        receiverUid = intent.getStringExtra("uid")
-        Log.d("receiverUid", receiverUid!!)
-        senderUid = FirebaseAuth.getInstance().currentUser?.uid
-        Log.d("senderUid", senderUid!!)
+
+
+
+        Log.d("Uidreceiver", receiverUid!!)
+        Log.d("Uidsender", senderUid!!)
 
         database!!.reference
             .child("Presence")
@@ -236,10 +252,8 @@ class ChatActivity : AppCompatActivity() {
                         .setValue(message)
                         .addOnSuccessListener {}
                 }
-            sendPushNotificationToRecipient(receiverUid, getPreferenceString(this,AppConstants.senderName), messageTxt)
+            sendPushNotificationToRecipient(receiverUid ,senderUid, getPreferenceString(this,AppConstants.senderName), messageTxt,profileImage)
         }
-
-
 //        binding.attachment.setOnClickListener {
 //            val intent = Intent()
 //            intent.action = Intent.ACTION_GET_CONTENT
@@ -475,14 +489,42 @@ class ChatActivity : AppCompatActivity() {
 //        intent.type = "image/*"
 //        startActivityForResult(intent, 25)
 //    }
-    private fun sendPushNotificationToRecipient(recipientUid: String?, senderName: String?, message: String) {
+private fun sendPushNotificationToRecipientCalling(Uid: String?, senderName: String?, message: String) {
+    // Replace "RECIPIENT_FCM_TOKEN" with the actual FCM token of the recipient
+    val recipientFcmToken = Token
+
+    if (recipientFcmToken != null) {
+        val notificationData = mapOf(
+            "title" to "New call from $senderName",
+            "body" to message,
+            "uid" to Uid
+            // Add any other relevant data
+        )
+
+        val fcmMessage = mapOf(
+            "to" to recipientFcmToken,
+            "data" to notificationData
+        )
+        Log.d("fcmMessage",fcmMessage.toString())
+        // Use your preferred method to send the FCM message to the recipient
+        // This could involve using a server, Cloud Functions, or any other backend solution
+        sendFcmMessageToRecipient(fcmMessage)
+    }
+}
+    private fun sendPushNotificationToRecipient(SUid: String?, RUid: String?,
+                                                senderName: String?, message: String,profileImage:String?) {
         // Replace "RECIPIENT_FCM_TOKEN" with the actual FCM token of the recipient
         val recipientFcmToken = Token
 
         if (recipientFcmToken != null) {
             val notificationData = mapOf(
                 "title" to "New Message from $senderName",
-                "body" to message
+                "body" to message,
+                "Suid" to SUid,
+                "Ruid" to RUid,
+                "name" to senderName,
+                "image" to profileImage
+
                 // Add any other relevant data
             )
 
@@ -553,5 +595,20 @@ class ChatActivity : AppCompatActivity() {
             notificationManager.createNotificationChannel(channel)
         }
     }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if(isFrom==1)
+        {
+            startActivity(Intent(this,MainActivity::class.java))
+
+        }
+        else
+        {
+            finish()
+        }
+    }
+
+
 
 }

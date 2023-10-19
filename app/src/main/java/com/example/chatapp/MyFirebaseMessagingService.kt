@@ -139,17 +139,24 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
 //            val value = json.getJSONObject("value")
             val body = json.getString("body").toString()
             val title = json.getString("title").toString()
-//            val message = value.getString("message").toString()
+            val sUid = json.getString("Suid").toString()
+            val rUid = json.getString("Ruid").toString()
+            val name = json.getString("name").toString()
+            val image = json.getString("image").toString()
 
 
 
             val mNotificationManager = NotificationManager(applicationContext)
-            val intent = Intent(applicationContext, MainActivity::class.java)
-            //intent.putExtra(AppConstants.NOTIFICATION_DATA, "notification")
+            intent = Intent(applicationContext, ChatActivity::class.java)
+            intent.putExtra("Suid",sUid)
+            intent.putExtra("Rid",rUid)
+            intent.putExtra("Name",name)
+            intent.putExtra("Image",image)
+            intent.putExtra("Isfrom",1)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             mNotificationManager.showSmallNotification(title, body, intent)
         } catch (e: JSONException) {
-
+            Log.d("errorCondition", e.printStackTrace().toString())
             //  e.printStackTrace()
         }
 

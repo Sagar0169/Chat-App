@@ -27,11 +27,11 @@ class Login : AppCompatActivity() {
             logIn(binding?.edtEmail?.text.toString(), binding?.edtPassword?.text.toString())
 
         }
-//        if(auth!!.currentUser!=null){
-//            val intent = Intent(this@Login,MainActivity::class.java)
-//           startActivity(intent)
-//            finish()
-//        }
+        if(auth!!.currentUser!=null){
+            val intent = Intent(this@Login,MainActivity::class.java)
+           startActivity(intent)
+            finish()
+        }
 //        else{
 //            val intent = Intent(this@Login,SignUP::class.java)
 //            startActivity(intent)
