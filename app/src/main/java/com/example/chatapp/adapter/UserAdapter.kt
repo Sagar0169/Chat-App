@@ -13,11 +13,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.chatapp.AppConstants
 import com.example.chatapp.ChatActivity
 import com.example.chatapp.GroupChatActivity
 import com.example.chatapp.R
 import com.example.chatapp.databinding.UsersBinding
 import com.example.chatapp.model.User
+import com.example.chatapp.utilities.zoomimageview.Utility
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -64,6 +66,7 @@ class UserAdapter(
                 .addValueEventListener(object : ValueEventListener {
                     override fun onDataChange(dataSnapshot: DataSnapshot) {
                         val lastMsg = dataSnapshot.value.toString()
+                        val lastMssg = Utility.getDecryptedString(lastMsg,AppConstants.CRYPT_KEY)
                         database.reference.child("chats")
                             .child(chatRoomId)
                             .child("lastMsgSeen")
@@ -71,9 +74,9 @@ class UserAdapter(
                                 override fun onDataChange(dataSnapshot: DataSnapshot) {
                                     val seen = dataSnapshot.value.toString()
                                     if (seen == "true") {
-                                        holder.binding.messageSentTick.setImageResource(R.drawable.tick_green)
+                                        holder.binding.messageSentTick.setImageResource(R.drawable.open_eye)
                                     } else {
-                                        holder.binding.messageSentTick.setImageResource(R.drawable.tick_black)
+                                        holder.binding.messageSentTick.setImageResource(R.drawable.close_eye)
                                     }
                                 }
 
@@ -89,15 +92,22 @@ class UserAdapter(
                                     val lastMsgSender = dataSnapshot.value.toString()
                                     if (lastMsgSender == FirebaseAuth.getInstance().currentUser?.uid) {
                                         // Last message is from the current user
-                                        holder.binding.tvRole.text = "You: $lastMsg"
+                                        holder.binding.tvRole.text = "You: $lastMssg"
                                         holder.binding.messageSentTick.visibility = View.VISIBLE
 
                                     } else {
                                         // Last message is from the receiver
-                                        holder.binding.tvRole.text = lastMsg
+                                        holder.binding.tvRole.text = Utility.getDecryptedString(lastMsg,
+                                            AppConstants.CRYPT_KEY)
                                         holder.binding.messageSentTick.visibility = View.GONE
 
                                     }
+
+//                                    if(holder.binding.tvRole.text.toString() == "null"){
+//                                        holder.itemView.visibility = View.GONE
+//                                        holder.itemView.layoutParams.height = 0
+//                                        holder.itemView.layoutParams.width = 0
+//                                    }
 
                                     database.reference.child("chats")
                                         .child(chatRoomId)

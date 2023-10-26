@@ -10,12 +10,14 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.example.chatapp.AppConstants
 import com.example.chatapp.ImageViewerActivity
 import com.example.chatapp.R
 import com.example.chatapp.databinding.DeleteLayoutBinding
 import com.example.chatapp.databinding.ReceiveMsgBinding
 import com.example.chatapp.databinding.SendMsgBinding
 import com.example.chatapp.model.Message
+import com.example.chatapp.utilities.zoomimageview.Utility
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import java.text.SimpleDateFormat
@@ -26,16 +28,17 @@ class MessagesAdapter(
     var context: Context,
     messages: ArrayList<Message>?,
     senderRoom: String,
-    receiverRoom: String
+    receiverRoom: String,
+    private var deviceId: String? = null
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder?>() {
 
-    lateinit var messages: ArrayList<Message>
-    val ITEM_SENT = 1
-    val ITEM_RECEIVE = 2
-    val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    private lateinit var messages: ArrayList<Message>
+    private val ITEM_SENT = 1
+    private val ITEM_RECEIVE = 2
+    private val dateFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
     private var dialog: Dialog? = null
-    val senderRoom: String
-    var receiverRoom: String
+    private val senderRoom: String
+    private var receiverRoom: String
 
     init {
         if (messages != null) {
@@ -98,7 +101,7 @@ class MessagesAdapter(
                 }
             }
 
-            if (message.seen ) {
+            if (message.seen) {
 //                viewHolder.binding.timestamp.text = "SEEN"
 
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
@@ -110,7 +113,8 @@ class MessagesAdapter(
                 holder.binding.messageSentTick.setImageResource(R.drawable.close_eye)
             }
 
-            viewHolder.binding.message.text = message.message
+            viewHolder.binding.message.text =  Utility.getDecryptedString(message.message,
+                AppConstants.CRYPT_KEY)
 
             viewHolder.itemView.setOnLongClickListener {
                 val view = LayoutInflater.from(context)
@@ -209,7 +213,8 @@ class MessagesAdapter(
                 }
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
             }
-            viewHolder.binding.message.text = message.message
+            viewHolder.binding.message.text =  Utility.getDecryptedString(message.message,
+                AppConstants.CRYPT_KEY)
             viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
 //            viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
             viewHolder.itemView.setOnLongClickListener {
@@ -218,7 +223,7 @@ class MessagesAdapter(
 
                 val binding: DeleteLayoutBinding = DeleteLayoutBinding.bind(view)
                 val dialog = AlertDialog.Builder(context)
-                    .setTitle("Delete com.example.chatapp.model.com.example.chatapp.Message")
+                    .setTitle("Delete")
                     .setView(binding.root)
                     .create()
                 binding.everyone.visibility = View.GONE

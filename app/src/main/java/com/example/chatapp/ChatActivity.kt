@@ -39,6 +39,8 @@ import android.app.NotificationManager
 import android.os.Build
 import android.preference.PreferenceManager
 import android.provider.MediaStore
+import com.example.chatapp.utilities.zoomimageview.Utility
+import com.example.chatapp.utilities.zoomimageview.Utility.getUniqueIDWithRandomString
 import com.google.firebase.FirebaseApp
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -68,7 +70,7 @@ class ChatActivity : AppCompatActivity() {
     var storage: FirebaseStorage? = null
     var dialog: ProgressDialog? = null
     var senderUid: String? = null
-
+    var image: String? = null
     var Uid: String? = null
     var Name: String? = null
     var profileImage: String? = null
@@ -77,21 +79,20 @@ class ChatActivity : AppCompatActivity() {
     private val galleryPermissionRequestCode = 123
     var receiverUid: String? = null
     var isFrom: Int? = 0
+    private var deviceId: String? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
         database = FirebaseDatabase.getInstance()
         storage = FirebaseStorage.getInstance()
+        deviceId = getUniqueIDWithRandomString()
         Token= intent.getStringExtra("DeviceToken").toString()
         dialog = ProgressDialog(this@ChatActivity)
         dialog!!.setMessage("Sending image...")
         dialog!!.setCancelable(false)
         messages = ArrayList()
 
-
-        profileImage=intent.getStringExtra("image")
-        Name=intent.getStringExtra("name")
         val id = intent.getStringExtra("uid")
         isFrom=intent.getIntExtra("Isfrom",0)
         if (isFrom==1)
@@ -107,9 +108,38 @@ class ChatActivity : AppCompatActivity() {
             senderUid = FirebaseAuth.getInstance().currentUser?.uid
             receiverUid = intent.getStringExtra("uid")
         }
+        database!!.reference.child("users").child(receiverUid!!)
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        val userData = dataSnapshot.value as? Map<String, Any>
+                        val profileImage = userData?.get("profileImage") as? String
+                        val userName = userData?.get("name") as? String
+
+
+                        binding.name.text = userName
+                        if (profileImage != null) {
+                            // Load the profile image using Glide
+                            Glide.with(applicationContext).load(profileImage)
+                                .placeholder(R.drawable.ic_placeholder)
+                                .into(binding.profile01)
+                        } else {
+                            // Handle the case where profileImage is null or not a String
+                        }
+                    } else {
+                        // Handle the case where the dataSnapshot doesn't exist or is empty
+                    }
+                }
+
+                override fun onCancelled(databaseError: DatabaseError) {
+                    // Handle any errors if needed
+                }
+            })
+
+
         Uid= id
         if (id != null) {
-            Log.d("Tooken", Token)
+            Log.d("Token", Token)
         }
         binding.dots.setOnClickListener { view ->
             showPopupMenu(view)
@@ -124,7 +154,7 @@ class ChatActivity : AppCompatActivity() {
 //        }
         createNotificationChannel()
         binding.attachment.setOnClickListener {
-            // Check if permission is granted
+            // Check if permission is granted.
             if (ContextCompat.checkSelfPermission(
                     this,
                     Manifest.permission.READ_EXTERNAL_STORAGE
@@ -141,10 +171,10 @@ class ChatActivity : AppCompatActivity() {
                 )
             }
         }
-        binding.name.text = name
-        Glide.with(this).load(profile)
-            .placeholder(R.drawable.gallery_placeholder)
-            .into(binding.profile01)
+
+//        Glide.with(this).load(profile)
+//            .placeholder(R.drawable.gallery_placeholder)
+//            .into(binding.profile01)
         binding.profile01.setOnClickListener {
             showImageDialog(this, profile!!)
         }
@@ -168,7 +198,7 @@ class ChatActivity : AppCompatActivity() {
         Log.d("Uidsender", senderUid!!)
 
         database!!.reference
-            .child("Presence")
+            .child("presence")
             .child(receiverUid!!)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -190,10 +220,16 @@ class ChatActivity : AppCompatActivity() {
 
         senderRoom = senderUid + receiverUid
         receiverRoom = receiverUid + senderUid
-        adapter = MessagesAdapter(this, messages!!, senderRoom!!, receiverRoom!!)
+        adapter = MessagesAdapter(this, messages!!, senderRoom!!, receiverRoom!!,deviceId)
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
 
+//        val typing = HashMap<String, Any>()
+//        typing["typing"] = "typing....."
+//        database!!.reference.child("chats").child(senderRoom!!)
+//            .updateChildren(typing)
+//        database!!.reference.child("chats").child(receiverRoom!!)
+//            .updateChildren(typing)
         // Attach a listener to the "messages" node in the database
         val messagesRef = database!!.reference.child("chats").child(senderRoom!!).child("messages")
         messagesRef.addValueEventListener(object : ValueEventListener {
@@ -225,8 +261,13 @@ class ChatActivity : AppCompatActivity() {
 
         binding.sendBtn.setOnClickListener {
             val messageTxt: String = binding.messageBox.text.toString()
+
+            val messages: String? = Utility.getEncryptedString(
+                binding.messageBox.text.toString().trim(),
+                AppConstants.CRYPT_KEY
+            )
             val date = Date()
-            val message = Message(messageTxt, senderUid, date.time, false)
+            val message = Message(messages, senderUid, date.time, false)
             Log.d("onActivity", message.senderId!! + "2")
             binding.messageBox.setText("")
             val randomKey = database!!.reference.push().key
@@ -252,7 +293,8 @@ class ChatActivity : AppCompatActivity() {
                         .setValue(message)
                         .addOnSuccessListener {}
                 }
-            sendPushNotificationToRecipient(receiverUid ,senderUid, getPreferenceString(this,AppConstants.senderName), messageTxt,profileImage)
+            sendPushNotificationToRecipient(receiverUid ,senderUid, getPreferenceString(this,AppConstants.senderName), messageTxt,
+                profileImage)
         }
 //        binding.attachment.setOnClickListener {
 //            val intent = Intent()
@@ -270,7 +312,7 @@ class ChatActivity : AppCompatActivity() {
             }
 
             override fun afterTextChanged(p0: Editable?) {
-                database!!.reference.child("Presence")
+                database!!.reference.child("presence")
                     .child(senderUid!!)
                     .setValue("typing...")
                 handler.removeCallbacksAndMessages(null)
@@ -278,7 +320,7 @@ class ChatActivity : AppCompatActivity() {
             }
 
             var userStopperTyping = Runnable {
-                database!!.reference.child("Presence")
+                database!!.reference.child("presence")
                     .child(senderUid!!)
                     .setValue("Online")
             }
@@ -330,7 +372,7 @@ class ChatActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         val currentId = FirebaseAuth.getInstance().uid
-        database!!.reference.child("Presence")
+        database!!.reference.child("presence")
             .child(currentId!!)
             .setValue("offline")
     }
@@ -338,7 +380,7 @@ class ChatActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val currentId = FirebaseAuth.getInstance().uid
-        database!!.reference.child("Presence")
+        database!!.reference.child("presence")
             .child(currentId!!)
             .setValue("Online")
     }
