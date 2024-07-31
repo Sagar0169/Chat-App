@@ -1,5 +1,2 @@
 /build
-google-services.json
-*.log
-node_modules/
-app/secrets.properties
+
