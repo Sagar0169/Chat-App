@@ -1,88 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <ImageView
+        android:id="@+id/searchIcon"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="16dp"
+        android:src="@drawable/ic_search" />
 
-        android:id="@+id/llTab"
+    <!-- Title in the Center -->
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@id/searchIcon"
+        android:layout_alignBottom="@id/searchIcon"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="5dp"
+        android:text="Home"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- Profile Icon -->
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profileIcon"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_placeholder" />
+
+    <LinearLayout
+        android:id="@+id/llStoryView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="8dp"
+        android:padding="8dp"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/story_image"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="4dp"
+            android:src="@drawable/ic_placeholder"
+            android:background="@drawable/story_circle_background"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/story_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="My Status"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/title"
+        android:layout_toEndOf="@id/llStoryView"
         android:orientation="horizontal"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:id="@+id/llSchemes"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="0.5"
-
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvSchemes"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/tab_background"
-                android:backgroundTint="@color/yellow"
-                android:padding="10dp"
-                android:text="Chat"
-                android:textAlignment="center"
-                android:textColor="@color/white"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-
-        </LinearLayout>
-
-        <View
-            android:layout_width="2dp"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="1dp"
-            android:background="@color/black" />
-
-        <LinearLayout
-            android:id="@+id/llGuildLines"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.5"
-
-            android:orientation="vertical">
-
-            <TextView
-
-                android:id="@+id/tvGuildLines"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/tab2_background"
-                android:backgroundTint="#FFCB45"
-                android:padding="10dp"
-                android:text="Group Chat"
-                android:textAlignment="center"
-                android:textColor="@color/black"
-                android:textSize="22sp"
-                android:textStyle="bold" />
-
-
-        </LinearLayout>
-    </LinearLayout>
+        android:padding="8dp" />
 
 
     <FrameLayout
+        android:id="@+id/flChats"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_below="@+id/llTab"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/recyclerView"
         android:layout_alignParentBottom="true"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="-30dp"
         android:background="@drawable/home_background">
 
         <LinearLayout

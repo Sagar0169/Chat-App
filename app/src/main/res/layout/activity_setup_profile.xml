@@ -1,98 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:layout_gravity="center"
-    android:gravity="center_horizontal"
-    android:background="#FEFEFE"
+    android:background="#FFFFFF"
     tools:context=".SetupProfileActivity">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/imageView"
-        android:layout_width="150dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="32dp"
-        android:src="@drawable/ic_placeholder"/>
-
-    <TextView
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Profile Information"
-        android:textAlignment="center"
-        android:layout_marginTop="20dp"
-        android:textSize="20sp"
-        android:textStyle="bold|normal"
-        android:textColor="#1C47E6"/>
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:background="#FFFFFF"
+        android:padding="16dp">
 
+        <!-- Back Arrow Icon -->
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignParentStart="true"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_arrow_back" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Please set your name and optional Profile Image"
-        android:textAlignment="center"
-        android:layout_marginTop="20dp"
-        android:textSize="13sp"
-        android:textStyle="bold|normal"
-        android:textColor="#383839"/>
+        <TextView
+            android:id="@+id/tvHeader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="Profile Set Up"
+            android:textColor="#000E08"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="#FFFFFF"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="10dp"
-        app:cardUseCompatPadding="true">
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/ivBack"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="Add Your Details"
+            android:textColor="#000E08"
+            android:textSize="32sp"
+            android:textStyle="bold" />
+
+        <!-- Subtitle -->
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/imageView"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_below="@id/tvTitle"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="32dp"
+            android:src="@drawable/ic_placeholder" />
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/ivDelete"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_below="@id/imageView"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="-20dp"
+            android:src="@drawable/ic_delete" />
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="15dp"
-            android:gravity="center"
             android:orientation="vertical"
-            android:padding="15dp">
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginVertical="10dp"
+            android:layout_below="@id/imageView">
 
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="30dp"
+            android:text="Full Name"
+            android:textColor="#24786D"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <RelativeLayout
+            android:id="@+id/llNameField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvName"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/edit_text_background"
+            android:paddingVertical="15dp"
+            android:paddingHorizontal="10dp">
+
+            <!-- ImageView for the person icon -->
+            <ImageView
+                android:id="@+id/icNamePerson"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="5dp"
+                android:src="@drawable/ic_name_person" />
+
+            <!-- EditText for name input -->
             <EditText
-                android:id="@+id/editName"
+                android:id="@+id/etName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/background_shape"
-                android:ems="1"
-                android:hint="Type your Name"
+                android:layout_toEndOf="@id/icNamePerson"
+                android:hint="Enter Your Name"
                 android:inputType="text"
-                android:padding="10dp"
-                android:textColor="#1C1C1C"
-                android:textSize="20sp"
-                android:textStyle="bold|normal" />
+                android:textColorHint="#B7BCCA"
+                android:layout_marginHorizontal="10dp"
+                android:background="@color/white"
+                android:textColor="#000E08"
+                android:textSize="16sp" />
+        </RelativeLayout>
 
+
+        <TextView
+            android:id="@+id/tvRole"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/llNameField"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="20dp"
+            android:text="Role"
+            android:textColor="#24786D"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+        <RelativeLayout
+            android:id="@+id/llRoleField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:background="@drawable/edit_text_background"
+            android:paddingVertical="15dp"
+            android:paddingHorizontal="10dp">
+
+            <!-- ImageView for the person icon -->
+            <ImageView
+                android:id="@+id/icRole"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="5dp"
+                android:src="@drawable/ic_role" />
+
+            <!-- EditText for name input -->
             <EditText
-                android:id="@+id/role"
+                android:id="@+id/etRole"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/background_shape"
-                android:ems="1"
-                android:layout_marginTop="10dp"
-                android:hint="Type your Role"
+                android:layout_toEndOf="@id/icRole"
+                android:hint="Your Profile"
                 android:inputType="text"
-                android:padding="10dp"
-                android:textColor="#1C1C1C"
-                android:textSize="20sp"
-                android:textStyle="bold|normal" />
+                android:textColorHint="#B7BCCA"
+                android:layout_marginHorizontal="10dp"
+                android:background="@color/white"
+                android:textColor="#000E08"
+                android:textSize="16sp" />
+        </RelativeLayout>
+        </LinearLayout>
 
-            <Button
+
+        <!-- Login Button -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="16dp">
+
+            <!-- Login Button -->
+            <TextView
                 android:id="@+id/continueBtn02"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="#228C27"
-                android:text="Setup Profile"
-                android:textAllCaps="false"
+                android:layout_marginHorizontal="10dp"
+                android:layout_marginVertical="10dp"
+                android:background="@drawable/rounded_button"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="15dp"
+                android:text="Set Profile"
+                android:textAlignment="center"
+                android:textColor="#797C7B"
                 android:textSize="16sp"
-                android:textStyle="bold|normal" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
-</LinearLayout>
+                android:textStyle="bold" />
+        </RelativeLayout>
+    </RelativeLayout>
+</RelativeLayout>

@@ -50,7 +50,6 @@ class MessagesAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return if (viewType == ITEM_SENT) {
-
             val view = LayoutInflater.from(context).inflate(
                 R.layout.send_msg, parent, false
             )
@@ -65,18 +64,12 @@ class MessagesAdapter(
 
     override fun getItemViewType(position: Int): Int {
         val message = messages[position]
-        Log.d("FirebaseAuth", FirebaseAuth.getInstance().uid!! + "1")
-        Log.d("FirebaseAuth122", message.senderId!! + "2")
         return if (FirebaseAuth.getInstance().uid == message.senderId) {
-            Log.d("SENT", "2")
-//            seen = dateFormat.format(Date(message.timeStamp))
             ITEM_SENT
         } else {
-            Log.d("SENT", "1")
             ITEM_RECEIVE
         }
     }
-
 
     override fun getItemCount(): Int = messages.size
 
@@ -90,7 +83,6 @@ class MessagesAdapter(
                 viewHolder.binding.imageView45.visibility = View.VISIBLE
                 viewHolder.binding.message.visibility = View.GONE
 
-
                 Glide.with(context).load(message.imageUrl)
                     .placeholder(R.drawable.gallery_placeholder)
                     .into(viewHolder.binding.image)
@@ -102,47 +94,29 @@ class MessagesAdapter(
             }
 
             if (message.seen) {
-//                viewHolder.binding.timestamp.text = "SEEN"
-
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
-                holder.binding.messageSentTick.setImageResource(R.drawable.open_eye)
-
+                viewHolder.binding.messageSentTick.setImageResource(R.drawable.open_eye)
             } else {
-
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
-                holder.binding.messageSentTick.setImageResource(R.drawable.close_eye)
+                viewHolder.binding.messageSentTick.setImageResource(R.drawable.close_eye)
             }
 
-            viewHolder.binding.message.text =  Utility.getDecryptedString(message.message,
-                AppConstants.CRYPT_KEY)
+            viewHolder.binding.message.text = Utility.getDecryptedString(message.message, AppConstants.CRYPT_KEY)
 
             viewHolder.itemView.setOnLongClickListener {
                 val view = LayoutInflater.from(context)
                     .inflate(R.layout.dialog_delete, null)
 
                 val binding: DeleteLayoutBinding = DeleteLayoutBinding.bind(view)
-                val dialog = AlertDialog.Builder(context)
+                val dialog = AlertDialog.Builder(context, R.style.TransparentDialog)
                     .setTitle("Delete")
                     .setView(binding.root)
                     .create()
 
                 binding.everyone.visibility = View.VISIBLE
                 binding.everyone.setOnClickListener {
-                    message.message = "This message is removed"
-                    message.messageId?.let { it1 ->
-                        FirebaseDatabase.getInstance().reference
-                            .child("chats")
-                            .child(senderRoom)
-                            .child("messages")
-                            .child(it1).setValue(message)
-                    }
-                    message.messageId?.let { it1 ->
-                        FirebaseDatabase.getInstance().reference
-                            .child("chats")
-                            .child(receiverRoom)
-                            .child("messages")
-                            .child(it1).setValue(message)
-                    }
+                    message.message = Utility.getEncryptedString("This message is removed.", AppConstants.CRYPT_KEY)
+                    updateMessageInFirebase(message)
                     dialog.dismiss()
                 }
                 binding.delete.setOnClickListener {
@@ -159,8 +133,6 @@ class MessagesAdapter(
                     dialog.dismiss()
                 }
                 dialog.show()
-
-
                 false
             }
         } else {
@@ -169,8 +141,6 @@ class MessagesAdapter(
                 viewHolder.binding.image.visibility = View.VISIBLE
                 viewHolder.binding.imageView45.visibility = View.VISIBLE
                 viewHolder.binding.message.visibility = View.GONE
-
-
 
                 Glide.with(context).load(message.imageUrl)
                     .placeholder(R.drawable.gallery_placeholder)
@@ -183,46 +153,17 @@ class MessagesAdapter(
             }
             if (!message.seen) {
                 message.seen = true
-                FirebaseDatabase.getInstance().reference.child("chats")
-                    .child(senderRoom)
-                    .child("lastMsgUnRead").setValue(0)
-
-                FirebaseDatabase.getInstance().reference.child("chats")
-                    .child(senderRoom)
-                    .child("lastMsgSeen").setValue(true)
-
-                FirebaseDatabase.getInstance().reference.child("chats")
-                    .child(receiverRoom)
-                    .child("lastMsgSeen").setValue(true)
-                FirebaseDatabase.getInstance().reference.child("chats")
-                    .child(receiverRoom)
-                    .child("lastMsgUnRead").setValue(0)
-                message.messageId?.let { it1 ->
-                    FirebaseDatabase.getInstance().reference
-                        .child("chats")
-                        .child(senderRoom)
-                        .child("messages")
-                        .child(it1).setValue(message)
-                }
-                message.messageId?.let { it1 ->
-                    FirebaseDatabase.getInstance().reference
-                        .child("chats")
-                        .child(receiverRoom)
-                        .child("messages")
-                        .child(it1).setValue(message)
-                }
+                updateMessageSeenStatusInFirebase(message)
                 viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
             }
-            viewHolder.binding.message.text =  Utility.getDecryptedString(message.message,
-                AppConstants.CRYPT_KEY)
+            viewHolder.binding.message.text = Utility.getDecryptedString(message.message, AppConstants.CRYPT_KEY)
             viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
-//            viewHolder.binding.timestamp.text = dateFormat.format(Date(message.timeStamp))
             viewHolder.itemView.setOnLongClickListener {
                 val view = LayoutInflater.from(context)
                     .inflate(R.layout.dialog_delete, null)
 
                 val binding: DeleteLayoutBinding = DeleteLayoutBinding.bind(view)
-                val dialog = AlertDialog.Builder(context)
+                val dialog = AlertDialog.Builder(context, R.style.TransparentDialog)
                     .setTitle("Delete")
                     .setView(binding.root)
                     .create()
@@ -244,9 +185,64 @@ class MessagesAdapter(
                 false
             }
         }
-
     }
 
+    private fun updateMessageInFirebase(message: Message) {
+        message.messageId?.let { messageId ->
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(senderRoom)
+                .child("messages")
+                .child(messageId).setValue(message)
+
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(receiverRoom)
+                .child("messages")
+                .child(messageId).setValue(message)
+
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(senderRoom)
+                .child("lastMsg").setValue(message.message)
+
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(receiverRoom)
+                .child("lastMsg").setValue(message.message)
+        }
+    }
+
+    private fun updateMessageSeenStatusInFirebase(message: Message) {
+        FirebaseDatabase.getInstance().reference.child("chats")
+            .child(senderRoom)
+            .child("lastMsgUnRead").setValue(0)
+
+        FirebaseDatabase.getInstance().reference.child("chats")
+            .child(senderRoom)
+            .child("lastMsgSeen").setValue(true)
+
+        FirebaseDatabase.getInstance().reference.child("chats")
+            .child(receiverRoom)
+            .child("lastMsgSeen").setValue(true)
+        FirebaseDatabase.getInstance().reference.child("chats")
+            .child(receiverRoom)
+            .child("lastMsgUnRead").setValue(0)
+
+        message.messageId?.let { messageId ->
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(senderRoom)
+                .child("messages")
+                .child(messageId).setValue(message)
+
+            FirebaseDatabase.getInstance().reference
+                .child("chats")
+                .child(receiverRoom)
+                .child("messages")
+                .child(messageId).setValue(message)
+        }
+    }
 
     inner class SendMsgHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var binding: SendMsgBinding = SendMsgBinding.bind(itemView)

@@ -9,9 +9,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.blogspot.atifsoftwares.animatoolib.Animatoo
 import com.bumptech.glide.Glide
 import com.example.chatapp.AppConstants
 import com.example.chatapp.ChatActivity
@@ -184,7 +187,7 @@ class UserAdapter(
                 .into(holder.binding.profile)
 
             holder.binding.profile.setOnClickListener {
-                showImageDialog(context, user.profileImage!!)
+                showFullImageDialog( user.profileImage!!)
             }
         } else {
             holder.binding.username.text = user.name
@@ -226,7 +229,7 @@ class UserAdapter(
                 })
 
             holder.binding.profile.setOnClickListener {
-                showImageDialog(context, image!!)
+                showFullImageDialog(image!!)
             }
             database.reference.child("groupChats")
                 .child(user.uid!!)
@@ -261,36 +264,32 @@ class UserAdapter(
                     .putExtra("DeviceToken", user.FcmToken)
             }
             context.startActivity(intent)
+            Animatoo.animateZoom(context);
         }
     }
 
-    fun showImageDialog(context: Context, image: String) {
-        val dialog = Dialog(context, android.R.style.Theme_Translucent_NoTitleBar)
-        dialog.setContentView(R.layout.imagedialog)
-        dialog.setCancelable(true)
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.window!!.setLayout(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT
-        )
-        dialog.window!!.setGravity(Gravity.CENTER)
-        val lp: WindowManager.LayoutParams = dialog.window!!.attributes
-        lp.dimAmount = 0.75f
-        dialog.window!!.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-        dialog.window!!.attributes = lp
-        val dialogImage = dialog.findViewById(R.id.ivImg) as ImageView
-        val ivClose = dialog.findViewById(R.id.ivClose) as ImageView
 
-        Log.d("image", image)
+    private fun showFullImageDialog(imageUrl: String?) {
+        if (imageUrl.isNullOrEmpty()) {
+            Toast.makeText(context, "Image URL is not valid", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-        Glide.with(context).load(image)
-            .placeholder(R.color.black)
-            .into(dialogImage)
+        val dialog = Dialog(context, R.style.TransparentDialog)
+        dialog.setContentView(R.layout.dialog_full_image)
 
-        ivClose.setOnClickListener {
+        val fullImageView: ImageView = dialog.findViewById(R.id.fullImageView)
+        val closeButton: ImageButton = dialog.findViewById(R.id.closeButton)
+
+        Glide.with(context)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_placeholder)
+            .into(fullImageView)
+
+        closeButton.setOnClickListener {
             dialog.dismiss()
         }
+
         dialog.show()
     }
-
-}
+    }

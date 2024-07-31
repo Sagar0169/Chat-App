@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:background="@drawable/background_gradient"
+    tools:context=".OnBoardingActivity">
+
+
+
+        <!-- Subtitle -->
+        <RelativeLayout
+            android:id="@+id/rlDown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Connect friends"
+            android:textSize="75sp"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/tvSubtitlee"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="easily &amp;\nquickly"
+            android:textSize="70sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_below="@id/tvSubtitle"/>
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvDescription"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Our chat app is the perfect way to stay\nconnected with friends and family."
+            android:textSize="20sp"
+            android:textColor="#B3B3B3"
+            android:layout_below="@id/tvSubtitlee"
+            android:layout_marginTop="16dp" />
+
+        <!-- Social Login Buttons -->
+
+        <!-- Divider -->
+
+
+            <LinearLayout
+                android:id="@+id/llSocialLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@id/tvDescription"
+                android:layout_marginTop="30dp">
+
+                <ImageView
+                    android:id="@+id/ivFacebook"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_facebook"
+                    android:layout_marginHorizontal="8dp"
+                    android:contentDescription="Facebook Login" />
+
+                <ImageView
+                    android:id="@+id/ivGoogle"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_google"
+                    android:layout_marginHorizontal="8dp"
+                    android:contentDescription="Google Login" />
+
+                <ImageView
+                    android:id="@+id/ivApple"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_apple"
+                    android:layout_marginHorizontal="8dp"
+                    android:contentDescription="Apple Login" />
+            </LinearLayout>
+
+        <!-- Sign Up Button -->
+            <LinearLayout
+                android:id="@+id/llor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_below="@id/llSocialLogin"
+                android:layout_marginTop="25dp">
+
+                <View
+                    android:id="@+id/titleUnderline2"
+                    android:layout_width="0dp"
+                    android:layout_height="2dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:background="#CDD1D0" />
+
+                <TextView
+                    android:id="@+id/tvOr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="OR"
+                    android:textColor="#797C7B"
+                    android:textSize="14sp"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginEnd="8dp" />
+
+                <View
+                    android:id="@+id/titleUnderline"
+                    android:layout_width="0dp"
+                    android:layout_height="2dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:background="#CDD1D0" />
+
+            </LinearLayout>
+
+            <Button
+            android:id="@+id/btnSignUp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sign up with Email"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:paddingVertical="12dp"
+            android:paddingHorizontal="32dp"
+                android:layout_below="@+id/llor"
+            android:background="@drawable/rounded_button_white"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="25dp" />
+
+        <!-- Log In Text -->
+        <TextView
+            android:id="@+id/tvLogIn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/existing_account_log_in"
+            android:textColor="@color/dark_gray"
+            android:layout_below="@id/btnSignUp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="40dp"
+            android:textSize="14sp" />
+    </RelativeLayout>
+    </RelativeLayout>

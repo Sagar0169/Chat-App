@@ -6,5 +6,8 @@
     <color name="otp">#FEFEFE</color>
     <color name="primaryColor">#FF5722</color>
     <color name="accentColor">#03A9F4</color>
+    <color name="green">#24786D</color>
+    <color name="light_grey">#F3F6F6</color>
+    <color name="dark_gray">#797C7B</color>
     <color name="my_card_background_color">#FFFFFF</color> <!-- Set the same color value for both themes -->
 </resources>

@@ -2,6 +2,7 @@ package com.example.chatapp
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Dialog
 import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
@@ -11,16 +12,21 @@ import android.os.Bundle
 import android.preference.PreferenceManager
 import android.text.InputType
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.chatapp.adapter.UserAdapter
 import com.example.chatapp.databinding.ActivityMainBinding
 import com.example.chatapp.model.User
+import com.example.chatapp.utilities.zoomimageview.Utility
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -38,6 +44,7 @@ class MainActivity : AppCompatActivity() {
     private var dialog: ProgressDialog? = null
     var user: User? = null
     var userName: String? = null
+    var profileImage: String? = null
     var GroupId: String? = null
     var senderName: String? = null
 
@@ -74,23 +81,49 @@ class MainActivity : AppCompatActivity() {
 
         // Initialize UI components and adapters
 
-        binding.llSchemes.setOnClickListener {
-            binding.tvSchemes.setTextColor(ContextCompat.getColor(this, R.color.white))
-            binding.tvGuildLines.setTextColor(ContextCompat.getColor(this, R.color.black))
-            binding.groupChat.visibility = View.GONE
-            RvAdapter(users!!)
-        }
-
-        binding.llGuildLines.setOnClickListener {
-            logout()
-        }
+//        binding.llSchemes.setOnClickListener {
+//            binding.tvSchemes.setTextColor(ContextCompat.getColor(this, R.color.white))
+//            binding.tvGuildLines.setTextColor(ContextCompat.getColor(this, R.color.black))
+//            binding.groupChat.visibility = View.GONE
+//            RvAdapter(users!!)
+//        }
+//
+//        binding?.llGuildLines?.setOnClickListener {
+////            binding?.view?.visibility= View.GONE
+////            binding?.view1?.visibility= View.VISIBLE
+//            binding.tvSchemes.setTextColor(ContextCompat.getColor(this, R.color.black))
+//            binding.tvGuildLines.setTextColor(ContextCompat.getColor(this, R.color.white))
+//            binding.groupChat.visibility = View.VISIBLE
+////            RvAdapter(groupChats!!)
+//            logout()
+//        }
 
         database!!.reference.child("users")
             .child(FirebaseAuth.getInstance().uid!!)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     user = snapshot.getValue(User::class.java)
-                    userName = user?.user_name
+                    if (user == null) {
+                        // User does not exist in the database
+                        Toast.makeText(this@MainActivity, "User not found. Redirecting to login page.", Toast.LENGTH_SHORT).show()
+                        redirectToLogin()
+                    } else {
+                        userName = user?.user_name
+                        Utility.savePreferencesString(this@MainActivity,AppConstants.senderName,userName!!)
+                        profileImage = user?.profileImage
+
+                        Log.d("UserName", userName.toString())
+
+                        Glide.with(baseContext).load(profileImage)
+                            .placeholder(R.drawable.ic_placeholder)
+                            .into(binding.profileIcon)
+
+                        Glide.with(baseContext).load(profileImage)
+                            .placeholder(R.drawable.ic_placeholder)
+                            .into(binding.storyImage)
+                        // Continue with the existing logic if user exists
+                    }
+
                 }
 
                 override fun onCancelled(error: DatabaseError) {
@@ -101,10 +134,59 @@ class MainActivity : AppCompatActivity() {
         binding.groupChat.setOnClickListener {
             showCreateGroupDialog()
         }
+
+        binding.profileIcon.setOnClickListener {
+            showFullImageDialog(profileImage)
+        }
+
         RvAdapter(users!!)
         // Fetch user data from Firebase and populate the user list
         fetchUserData()
+        fetchGroupData()
+
+
+
+        val storyList = listOf(
+            Story(R.drawable.ic_placeholder, "Dior", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Adil", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Marina", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Dean", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Sam", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Speed", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Millie", R.color.yellow),
+            Story(R.drawable.ic_placeholder, "Max", R.color.yellow)
+        )
+        val storyAdapter = StoryAdapter(storyList)
+        binding.recyclerView.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = storyAdapter
+        }
     }
+
+    private fun showFullImageDialog(imageUrl: String?) {
+        if (imageUrl.isNullOrEmpty()) {
+            Toast.makeText(this, "Image URL is not valid", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val dialog = Dialog(this, R.style.TransparentDialog)
+        dialog.setContentView(R.layout.dialog_full_image)
+
+        val fullImageView: ImageView = dialog.findViewById(R.id.fullImageView)
+        val closeButton: ImageButton = dialog.findViewById(R.id.closeButton)
+
+        Glide.with(this)
+            .load(imageUrl)
+            .placeholder(R.drawable.ic_placeholder)
+            .into(fullImageView)
+
+        closeButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
 
     private fun fetchUserData() {
         database!!.reference.child("users").addValueEventListener(object : ValueEventListener {
@@ -123,6 +205,34 @@ class MainActivity : AppCompatActivity() {
                 // Handle database error if needed
             }
         })
+    }
+
+    private fun fetchGroupData() {
+        database!!.reference.child("groupChats").addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                groupChats!!.clear()
+                for (postSnapshot in snapshot.children) {
+                    GroupId = postSnapshot.key?: ""
+                    val groupName = postSnapshot.child("groupName").value.toString()
+                    val currentUser=postSnapshot.getValue(User::class.java)
+                    val groupUser =
+                        User(GroupId, groupName, userName, null, null, null, true, null,null, null)
+                    if (FirebaseAuth.getInstance().currentUser?.uid != currentUser?.uid) {
+                        groupChats!!.add(groupUser)
+//
+                    }
+                }
+                // Update the adapters after adding groups
+                usersAdapter!!.notifyDataSetChanged()
+                // Update the adapter for group chats
+                // groupChatsAdapter!!.notifyDataSetChanged()
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                // Handle database error if needed
+            }
+        })
+
     }
 
     private fun showCreateGroupDialog() {
@@ -172,6 +282,13 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+    private fun redirectToLogin() {
+        auth.signOut()
+        val intent = Intent(this, Login::class.java)
+        startActivity(intent)
+        finish()
+    }
+
 
     private fun askNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

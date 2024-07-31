@@ -7,14 +7,19 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.example.chatapp.databinding.ActivitySetupProfileBinding
 import com.example.chatapp.model.User
+import com.example.chatapp.utilities.zoomimageview.Utility
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.storage.FirebaseStorage
@@ -23,7 +28,8 @@ import java.util.Date
 class SetupProfileActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySetupProfileBinding
     private var auth: FirebaseAuth? = null
-    private lateinit var Token:String
+    private lateinit var token: String
+    private lateinit var name: String
     private var database: FirebaseDatabase? = null
     private var storage: FirebaseStorage? = null
     private var selectedImage: Uri? = null
@@ -34,176 +40,163 @@ class SetupProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivitySetupProfileBinding.inflate(layoutInflater)
-        window.statusBarColor = ContextCompat.getColor(this, R.color.otp)
         setContentView(binding.root)
-        Token= intent?.getStringExtra("DeviceToken").toString()
-        dialog = ProgressDialog(this@SetupProfileActivity)
-        dialog!!.setMessage("Updating Profile...")
-        dialog!!.setCancelable(false)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.white)
+
+        // Full-screen immersive mode
+        window.decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_FULLSCREEN
+                        or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                )
+
+        // Adjust status bar items color for API 23 and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            window.decorView.systemUiVisibility = (
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                    )
+        }
+
+        // Adjust status bar appearance with WindowInsetsControllerCompat for better control
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val insetsController = WindowInsetsControllerCompat(window, window.decorView)
+            insetsController.isAppearanceLightStatusBars = true
+        }
+
+
+        // Add TextWatcher to email and password fields
+        binding?.etName?.addTextChangedListener(textWatcher)
+        binding?.etRole?.addTextChangedListener(textWatcher)
+        token = intent.getStringExtra("DeviceToken").toString()
+        name = intent.getStringExtra("Name").toString()
+        binding.etName.setText(name)
+        dialog = ProgressDialog(this).apply {
+            setMessage("Updating Profile...")
+            setCancelable(false)
+        }
         database = FirebaseDatabase.getInstance()
         storage = FirebaseStorage.getInstance()
         auth = FirebaseAuth.getInstance()
         supportActionBar?.hide()
-        binding.imageView.setOnClickListener {
-            // Check if permission is granted
-//            val galleryPermission = Manifest.permission.MANAGE_EXTERNAL_STORAGE
-//            if (ContextCompat.checkSelfPermission(this, galleryPermission) == PackageManager.PERMISSION_GRANTED) {
-//                // Permission is granted, open the gallery
-                openGallery()
-//            } else {
-//                ActivityCompat.requestPermissions(this, arrayOf(galleryPermission), galleryPermissionRequestCode)
-//            }
-        }
 
-        Log.d("DeviceTOken",Token)
+        binding.imageView.setOnClickListener {
+            openGallery()
+        }
 
         binding.continueBtn02.setOnClickListener {
-            val name: String = binding.editName.text.toString()
+            val name = binding.etName.text.toString().trim()
             if (name.isEmpty()) {
-                binding.editName.error = "Please type a name"
+                binding.etName.error = "Please type a name"
                 return@setOnClickListener
             }
-            dialog!!.show()
+            dialog?.show()
             if (selectedImage != null) {
-                val reference = storage!!.reference.child("Profile")
-                    .child(auth!!.uid!!)
-                val uploadTask = reference.putFile(selectedImage!!)
-                uploadTask.continueWithTask { task ->
-                    if (!task.isSuccessful) {
-                        throw task.exception!!
-                    }
-                    // Continue with the task to get the download URL
-                    reference.downloadUrl
-                }.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        val downloadUri = task.result
-                        val uid = auth!!.uid
-                        val phone = auth!!.currentUser!!.phoneNumber
-                        val name: String = binding.editName.text.toString()
-                        val role: String = binding.role.text.toString()
-                        val user = User(uid, name, name, phone, downloadUri.toString(), role, false, null,Token, null)
-                        database!!.reference
-                            .child("users")
-                            .child(uid!!)
-                            .setValue(user)
-                            .addOnCompleteListener {
-                                dialog!!.dismiss()
-                                val intent = Intent(this@SetupProfileActivity, MainActivity::class.java)
-                                startActivity(intent)
-                                finish()
-                            }
-                    } else {
-                        val uid = auth!!.uid
-                        val phone = auth!!.currentUser!!.phoneNumber
-                        val name: String = binding.editName.text.toString()
-                        val role: String = binding.role.text.toString()
-                        val user = User(uid, name, name, phone, "No Image", role, false, null,Token, 0)
-                        database!!.reference
-                            .child("users")
-                            .child(uid!!)
-                            .setValue(user)
-                            .addOnCanceledListener {
-                                dialog!!.dismiss()
-                                val intent = Intent(this@SetupProfileActivity, MainActivity::class.java)
-                                startActivity(intent)
-                                finish()
-                            }
-                    }
-                }
+                uploadImageAndSaveUser()
+            } else {
+                saveUserWithoutImage()
             }
         }
+    }
+    private val textWatcher = object : TextWatcher {
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            val email = binding?.etName?.text.toString().trim()
+            val password = binding?.etRole?.text.toString().trim()
+            binding?.continueBtn02?.isEnabled = email.isNotEmpty() && password.isNotEmpty()
+
+            binding?.continueBtn02?.setTextColor(
+                if (email.isNotEmpty() && password.isNotEmpty()) {
+                    resources.getColor(R.color.white) // Change to green when fields are filled
+                } else {
+                    resources.getColor(R.color.dark_gray) // Default color
+                }
+            )
+        }
+
+        override fun afterTextChanged(s: Editable?) {}
+    }
+    private fun uploadImageAndSaveUser() {
+        val reference = storage!!.reference.child("Profile").child(auth!!.uid!!)
+        val uploadTask = reference.putFile(selectedImage!!)
+
+        uploadTask.addOnSuccessListener {
+            Log.d("SetupProfileActivity", "Upload successful")
+            reference.downloadUrl.addOnSuccessListener { uri ->
+                val filePath = uri.toString()
+                saveUserWithImage(filePath)
+            }.addOnFailureListener { exception ->
+                Log.e("SetupProfileActivity", "Failed to get download URL", exception)
+                handleFailure("Failed to get download URL: ${exception.message}")
+            }
+        }.addOnFailureListener { exception ->
+            Log.e("SetupProfileActivity", "Upload failed", exception)
+            handleFailure("Upload failed: ${exception.message}")
+        }
+    }
+
+
+    private fun saveUserWithImage(imageUrl: String) {
+        val uid = auth!!.uid
+        val phone = auth!!.currentUser!!.phoneNumber
+        val name = binding.etName.text.toString()
+        val role = binding.etRole.text.toString()
+        val user = User(uid, name, name, phone, imageUrl, role, false, null, token, null)
+        database!!.reference.child("users").child(uid!!).setValue(user)
+            .addOnCompleteListener { task ->
+                dialog!!.dismiss()
+                if (task.isSuccessful) {
+                    Utility.savePreferencesString(this,AppConstants.senderName,name)
+                    startActivity(Intent(this@SetupProfileActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    handleFailure("Failed to save user")
+                }
+            }
+    }
+
+    private fun saveUserWithoutImage() {
+        val uid = auth!!.uid
+        val phone = auth!!.currentUser!!.phoneNumber
+        val name = binding.etName.text.toString()
+        val role = binding.etRole.text.toString()
+        val user = User(uid, name, name, phone, "No Image", role, false, null, token, null)
+        database!!.reference.child("users").child(uid!!).setValue(user)
+            .addOnCompleteListener { task ->
+                dialog!!.dismiss()
+                if (task.isSuccessful) {
+                    startActivity(Intent(this@SetupProfileActivity, MainActivity::class.java))
+                    finish()
+                } else {
+                    handleFailure("Failed to save user")
+                }
+            }
+    }
+
+    private fun handleFailure(message: String) {
+        dialog!!.dismiss()
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (data != null) {
-            if (data.data != null) {
-                val uri = data.data
-                val storage = FirebaseStorage.getInstance()
-                val time = Date().time
-                val reference = storage.reference
-                    .child("Profile")
-                    .child(time.toString() + "")
-
-                // Upload the image to Firebase Storage
-                reference.putFile(uri!!)
-                    .addOnSuccessListener { _ ->
-                        // Once the upload is successful, get the download URL
-                        reference.downloadUrl
-                            .addOnSuccessListener { downloadUri ->
-                                val filePath = downloadUri.toString()
-
-                                // Update the User object with the image URL
-                                val uid = auth!!.uid
-                                val phone = auth!!.currentUser!!.phoneNumber
-                                val name: String = binding.editName.text.toString()
-                                val role: String = binding.role.text.toString()
-                                val user = User(uid, name, name, phone, filePath, role, false, null,Token, null)
-
-                                // Save the User object to the database
-                                database!!.reference
-                                    .child("users")
-                                    .child(uid!!)
-                                    .setValue(user)
-                                    .addOnCompleteListener { task ->
-                                        dialog!!.dismiss()
-                                        if (task.isSuccessful) {
-                                            // Image URL saved successfully
-                                            // Handle success scenario as needed
-                                        } else {
-                                            // Handle database error
-                                            val exception = task.exception
-                                            if (exception != null) {
-                                                exception.printStackTrace()
-                                                Log.e("DatabaseError", exception.message ?: "Unknown error")
-                                            }
-                                            // Handle the failure scenario as needed
-                                        }
-                                    }
-                            }
-                            .addOnFailureListener { e ->
-                                // Handle failure to get the download URL
-                                e.printStackTrace()
-                                Log.e("DownloadURLError", e.message ?: "Unknown error")
-                                // Handle the failure scenario as needed
-                            }
-                    }
-                    .addOnFailureListener { e ->
-                        // Handle upload failure
-                        e.printStackTrace()
-                        Log.e("UploadError", e.message ?: "Unknown error")
-                        // Handle the failure scenario as needed
-                    }
-
-                binding.imageView.setImageURI(data.data)
-                selectedImage = data.data
-            }
+        if (requestCode == 45 && resultCode == RESULT_OK && data != null && data.data != null) {
+            selectedImage = data.data
+            binding.imageView.setImageURI(selectedImage)
         }
     }
 
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//
-//        if (requestCode == galleryPermissionRequestCode) {
-//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                // Permission is granted, open the gallery
-//                openGallery()
-//            } else {
-//                // Permission is denied, show a toast message
-//                Toast.makeText(this, "Cannot access gallery without permission", Toast.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
-
     private fun openGallery() {
-        val intent = Intent()
-        intent.action = Intent.ACTION_GET_CONTENT
-        intent.type = "image/*"
+        val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+            type = "image/*"
+        }
         startActivityForResult(intent, 45)
     }
 }
+
