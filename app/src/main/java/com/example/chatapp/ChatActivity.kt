@@ -53,11 +53,12 @@ import java.util.*
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
+import java.io.InputStream
 
 class ChatActivity : AppCompatActivity() {
     private val JSON = "application/json; charset=utf-8".toMediaTypeOrNull()
-    private val FCM_API = "https://fcm.googleapis.com/fcm/send"
-    private val SERVER_KEY = "AAAA0Suoa18:APA91bFS3mwFl_JEnfPjiqmfBdusauvb5n2LeTKP95hXdxaqRKWNqZC5Zams68sC165xNKlIklHOuNivfQzGCQTr2kN0nUh_nI1qLhD4zu3cTak4Z8Xh31gkXayVx-uaLjTi1Ujn32XT"
+    private lateinit var  FCM_API :String
+    private lateinit var  SERVER_KEY :String
     private lateinit var token: String
     private lateinit var name: String
     private lateinit var binding: ActivityChatBinding
@@ -95,6 +96,18 @@ class ChatActivity : AppCompatActivity() {
         dialog!!.setCancelable(false)
         messages = ArrayList()
         window.statusBarColor = ContextCompat.getColor(this, R.color.black)
+
+
+        fun loadProperties(): Properties {
+            val properties = Properties()
+            val inputStream: InputStream = this.assets.open("secrets.properties")
+            properties.load(inputStream)
+            return properties
+        }
+
+        val properties = loadProperties()
+         SERVER_KEY = properties.getProperty("SERVER_KEY")
+        FCM_API = properties.getProperty("FCM_API")
 
 
         val id = intent.getStringExtra("uid")
