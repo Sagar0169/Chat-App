@@ -13,7 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
-google-services.json
+app/google-services.json
 *.log
 node_modules/
 app/secrets.properties
